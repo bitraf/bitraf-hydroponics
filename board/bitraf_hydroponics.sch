@@ -1102,4 +1102,6 @@ Text Label 7000 4600 0    60   ~ 0
 BUZZ
 Text Label 4000 4050 0    60   ~ 0
 TEMP_HUM
+NoConn ~ 1500 2950
+NoConn ~ 1500 3050
 $EndSCHEMATC
