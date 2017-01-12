@@ -8,8 +8,12 @@
 #include <ArduinoOTA.h>
 #include "LiquidCrystal_I2C.h" //This library you can add via Include Library > Manage Library > 
 #include "RotaryEncoder.h"
+#include "Ota.h"
 
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
+
+const char *wifi_ssid = ;
+const char *wifi_password = ;
 
 const int PIN_ENC1 = D5;
 const int PIN_ENC2 = D6;
@@ -45,9 +49,14 @@ void setup()
   rotary.setup();
   attachInterrupt(digitalPinToInterrupt(PIN_ENC1), intrEncChange1, CHANGE);
   attachInterrupt(digitalPinToInterrupt(PIN_ENC2), intrEncChange2, CHANGE);
+
+  setupOta();
+  WiFi.begin(wifi_ssid, wifi_password);
 }
 
 void loop() {
+  ArduinoOTA.handle();
+
   rotary.loop();
 }
 
