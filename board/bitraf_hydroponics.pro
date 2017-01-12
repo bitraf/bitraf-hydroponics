@@ -1,4 +1,4 @@
-update=to. 22. sep. 2016 kl. 21.29 +0200
+update=to. 15. des. 2016 kl. 21.20 +0100
 version=1
 last_client=kicad
 [pcbnew]
@@ -59,3 +59,13 @@ LibName27=atmel
 LibName28=contrib
 LibName29=valves
 LibName30=nodemcu
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
