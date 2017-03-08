@@ -1,2 +1,5 @@
 *.fcstd?*
 *_autosave?*
+*.bak
+*-bak
+wifipassword.h

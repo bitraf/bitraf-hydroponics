@@ -20,7 +20,7 @@ void setupOta() {
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
   });
 
-  // ArduinoOTA.setPassword(TODO);
+  // ArduinoOTA.setPassword();
   ArduinoOTA.begin();
 }
 
