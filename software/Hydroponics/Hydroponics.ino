@@ -169,7 +169,7 @@ void setDefaultValues(JsonObject& root){
 }
 
 
-void readSettings(){
+JsonObject& readSettings(){
     File f = SPIFFS.open("/hydrosettings.json", "r");
     if (!f){
       Serial.println("No settings file found. Creating initial defaults");
@@ -177,6 +177,7 @@ void readSettings(){
       JsonObject& root = json_buffer.createObject();
       setDefaultValues(root);
       writeSettings(root);
+      return root;
     }
     else {
       // Read settings
@@ -187,9 +188,10 @@ void readSettings(){
       }
       else {
         Serial.println("Parsing json succeeded!");
-        root.printTo(Serial);
+        //root.printTo(Serial);
       }
       f.close();
+      return root;
     }
   }
 
@@ -228,9 +230,9 @@ void setup()
   setupOta();
 
   // load settings
-  Serial.println("Before SPIFFS");
   SPIFFS.begin();
-  Serial.println("After SPIFFS");
+  JsonObject& settings = readSettings();
+  settings.printTo(Serial);
 
   // initialize last_fill_start
   last_fill_start = millis();
@@ -255,11 +257,21 @@ void initAlarms(){
   static bool alarms_set = false;
   if (timeStatus() == timeSet && !alarms_set){
     // Initial Alarm setup
-    Alarm.alarmRepeat(water_cycles[0][0], water_cycles[0][1], 0, waterOn);
-    Alarm.alarmRepeat(water_cycles[1][0], water_cycles[1][1], 0, waterOn);
-    Alarm.alarmRepeat(water_cycles[2][0], water_cycles[2][1], 0, waterOn);
-    Alarm.alarmRepeat(water_cycles[3][0], water_cycles[3][1], 0, waterOn);
+    JsonObject& settings = readSettings();
+    Alarm.alarmRepeat(settings["watercycles"]["0"][0], settings["watercycles"]["0"][1], 0, waterOn);
+    Alarm.alarmRepeat(settings["watercycles"]["1"][0], settings["watercycles"]["1"][1], 0, waterOn);
+    Alarm.alarmRepeat(settings["watercycles"]["2"][0], settings["watercycles"]["2"][1], 0, waterOn);
+    Alarm.alarmRepeat(settings["watercycles"]["3"][0], settings["watercycles"]["3"][1], 0, waterOn);
     Alarm.timerRepeat(0, CHECK_WATER_INTERVAL, 0, checkWateringStatus);
+    // TODO: consider using global variables and convert setDefaultValues
+    // to use the global variables as holders blahbla.
+    // I other words populate variables with settings. Write changes based on
+    // the same variables.
+    //Alarm.alarmRepeat(water_cycles[0][0], water_cycles[0][1], 0, waterOn);
+    //Alarm.alarmRepeat(water_cycles[1][0], water_cycles[1][1], 0, waterOn);
+    //Alarm.alarmRepeat(water_cycles[2][0], water_cycles[2][1], 0, waterOn);
+    //Alarm.alarmRepeat(water_cycles[3][0], water_cycles[3][1], 0, waterOn);
+    //Alarm.timerRepeat(0, CHECK_WATER_INTERVAL, 0, checkWateringStatus);
     alarms_set = true;
   }
 }
