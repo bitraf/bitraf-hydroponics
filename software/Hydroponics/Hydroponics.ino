@@ -17,27 +17,24 @@
 String tx_nexa = "1010101010101010101010101010101010101010101010101010";
 String ch_nexa="1010";
 
+// Settings variables
+unsigned long water_fill_time;
+int light_time_on[2];
+int light_time_off[2];
+int air_time_on[2];
+int air_time_off[2];
+int water_cycles[4][2];
+const char *wifi_ssid;
+const char *wifi_password;
+
 // RF transmit
 const int RF_DATA = D3;
 Tx433_Nexa Nexa(RF_DATA, tx_nexa, ch_nexa);
 
-// Light timers
-int light_time_on[2] = {8, 0};
-int light_time_off[2] = {0, 0};
-
-// Water cycles
-int water_cycles[4][2] = {
-  {0, 0},
-  {6, 0},
-  {12, 0},
-  {18, 0}
-};
-
+// MOSFET 3
+const int MOSFET_3 = D4;
 // Water PIN
 const int WATER_PUMP_PIN = D6;
-
-// Water fill time
-unsigned long water_fill_time = 120 * 1000;  // seconds * millis
 
 // Track last water fill
 unsigned long last_fill_start;
@@ -48,6 +45,9 @@ bool water_on = false;
 // Track if light is on or should be
 bool light_on = false;
 
+// Track if air pump is on or should be
+bool air_on = false;
+
 // Check water interval in minutes
 const uint CHECK_WATER_INTERVAL = 1;
 
@@ -56,8 +56,6 @@ const int AIR_PUMP_PIN = D5;
 
 // WiFi Variables
 WiFiClient wifi_client;
-const char *wifi_ssid = WIFI_SSID;
-const char *wifi_password = WIFI_PWD;
 
 // MQTT client
 const char *mqtt_address = MQTT_ADDRESS;
@@ -69,14 +67,16 @@ PubSubClient mqtt_client(wifi_client);
 // MQTT topics
 const char *mqtt_light_on = MQTT_TOPIC_LIGHT_ON;
 const char *mqtt_light_off = MQTT_TOPIC_LIGHT_OFF;
+const char *mqtt_air_on = MQTT_TOPIC_AIR_ON;
+const char *mqtt_air_off = MQTT_TOPIC_AIR_OFF;
 const char *mqtt_watercycle = MQTT_TOPIC_WATERCYCLE;
 const char *mqtt_water_fill_time = MQTT_TOPIC_WATER_FILL_TIME;
 
 // LCD setup
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
-const int PIN_ENC1 = D5;
-const int PIN_ENC2 = D6;
+const int PIN_ENC1 = D8;
+const int PIN_ENC2 = D9;
 const int PIN_BTN = D7;
 using decoder_t = RotaryEncoderDecoder<PIN_ENC1, PIN_ENC2, PIN_BTN, uint16_t>;
 
@@ -102,6 +102,8 @@ void startMQTT(){
   Serial.println(mqtt_client.state());
   mqtt_client.subscribe(mqtt_light_on);
   mqtt_client.subscribe(mqtt_light_off);
+  mqtt_client.subscribe(mqtt_air_on);
+  mqtt_client.subscribe(mqtt_air_off);
   mqtt_client.subscribe(mqtt_watercycle);
   mqtt_client.subscribe(mqtt_water_fill_time);
 }
@@ -151,6 +153,14 @@ void setDefaultValues(JsonObject& root){
   light_off.add(0);
   light_off.add(0);
 
+  JsonObject& air = root.createNestedObject("air");
+  JsonArray& air_on = air.createNestedArray("on");
+  air_on.add(2);
+  air_on.add(0);
+  JsonArray& air_off = air.createNestedArray("off");
+  air_off.add(10);
+  air_off.add(0);
+
   JsonObject& watercycles = root.createNestedObject("watercycles");
   JsonArray& cycle_0 = watercycles.createNestedArray("0");
   cycle_0.add(0);
@@ -165,11 +175,82 @@ void setDefaultValues(JsonObject& root){
   cycle_3.add(18);
   cycle_3.add(0);
 
-  root["waterfill"] = water_fill_time;
+  root["waterfill"] = 120 * 1000;
 }
 
 
-JsonObject& readSettings(){
+void updateSettings(JsonObject& root){
+  JsonObject& wifi = root.createNestedObject("wifi");
+  wifi["ssid"] = wifi_ssid;
+  wifi["password"] = wifi_password;
+
+  JsonObject& light = root.createNestedObject("lights");
+  JsonArray& light_on = light.createNestedArray("on");
+  light_on.add(light_time_on[0]);
+  light_on.add(light_time_on[1]);
+  JsonArray& light_off = light.createNestedArray("off");
+  light_off.add(light_time_off[0]);
+  light_off.add(light_time_off[0]);
+
+  JsonObject& air = root.createNestedObject("air");
+  JsonArray& air_on = air.createNestedArray("on");
+  air_on.add(air_time_on[0]);
+  air_on.add(air_time_on[1]);
+  JsonArray& air_off = air.createNestedArray("off");
+  air_off.add(air_time_off[0]);
+  air_off.add(air_time_off[0]);
+
+  JsonObject& watercycles = root.createNestedObject("watercycles");
+  JsonArray& cycle_0 = watercycles.createNestedArray("0");
+  cycle_0.add(water_cycles[0][0]);
+  cycle_0.add(water_cycles[0][1]);
+  JsonArray& cycle_1 = watercycles.createNestedArray("1");
+  cycle_1.add(water_cycles[1][0]);
+  cycle_1.add(water_cycles[1][1]);
+  JsonArray& cycle_2 = watercycles.createNestedArray("2");
+  cycle_2.add(water_cycles[2][0]);
+  cycle_2.add(water_cycles[2][1]);
+  JsonArray& cycle_3 = watercycles.createNestedArray("3");
+  cycle_3.add(water_cycles[3][0]);
+  cycle_3.add(water_cycles[3][1]);
+
+  root["waterfill"] = water_fill_time;
+}
+
+void applyInitialSettings(JsonObject& root){
+  // Water fill time
+  water_fill_time = root["waterfill"];  // seconds * millis
+
+  // Light timers
+  light_time_on[0] = root["lights"]["on"][0];
+  light_time_on[1] = root["lights"]["on"][1];
+
+  light_time_off[0] = root["lights"]["off"][0];
+  light_time_off[1] = root["lights"]["off"][1];
+
+  // air timers
+  air_time_on[0] = root["air"]["on"][0];
+  air_time_on[1] = root["air"]["on"][1];
+
+  air_time_off[0] = root["air"]["off"][0];
+  air_time_off[1] = root["air"]["off"][1];
+
+  // Water cycles
+  water_cycles[0][0] = root["watercycles"]["0"][0];
+  water_cycles[0][1] = root["watercycles"]["0"][1];
+  water_cycles[1][0] = root["watercycles"]["1"][0];
+  water_cycles[1][1] = root["watercycles"]["1"][1];
+  water_cycles[2][0] = root["watercycles"]["2"][0];
+  water_cycles[2][1] = root["watercycles"]["2"][1];
+  water_cycles[3][0] = root["watercycles"]["3"][0];
+  water_cycles[3][1] = root["watercycles"]["3"][1];
+
+  // WiFi
+  wifi_ssid = root["wifi"]["ssid"];
+  wifi_password = root["wifi"]["password"];
+}
+
+void readSettings(){
     File f = SPIFFS.open("/hydrosettings.json", "r");
     if (!f){
       Serial.println("No settings file found. Creating initial defaults");
@@ -177,21 +258,19 @@ JsonObject& readSettings(){
       JsonObject& root = json_buffer.createObject();
       setDefaultValues(root);
       writeSettings(root);
-      return root;
-    }
-    else {
+    } else {
       // Read settings
       String json = f.readStringUntil('\n');
       JsonObject& root = json_buffer.parseObject(json.c_str());
+      f.close();
       if (!root.success()){
         Serial.println("Parsing json failed!");
       }
       else {
         Serial.println("Parsing json succeeded!");
-        //root.printTo(Serial);
+        root.printTo(Serial);
+        applyInitialSettings(root);
       }
-      f.close();
-      return root;
     }
   }
 
@@ -200,6 +279,8 @@ void writeSettings(JsonObject& root){
   File f = SPIFFS.open("/hydrosettings.json", "w");
   root.printTo(f);
   f.close();
+  Serial.println("Wrote settings to disk:");
+  root.printTo(Serial);
 }
 
 
@@ -210,7 +291,9 @@ void setup()
   digitalWrite(WATER_PUMP_PIN, LOW);
   pinMode(AIR_PUMP_PIN, OUTPUT);
   digitalWrite(AIR_PUMP_PIN, LOW);
-
+  pinMode(MOSFET_3, OUTPUT);
+  digitalWrite(MOSFET_3, LOW);
+  
   Serial.begin(115200);
   Serial.println();
   Serial.println("Bitraf hydroponics");
@@ -231,8 +314,7 @@ void setup()
 
   // load settings
   SPIFFS.begin();
-  JsonObject& settings = readSettings();
-  settings.printTo(Serial);
+  readSettings();
 
   // initialize last_fill_start
   last_fill_start = millis();
@@ -257,21 +339,11 @@ void initAlarms(){
   static bool alarms_set = false;
   if (timeStatus() == timeSet && !alarms_set){
     // Initial Alarm setup
-    JsonObject& settings = readSettings();
-    Alarm.alarmRepeat(settings["watercycles"]["0"][0], settings["watercycles"]["0"][1], 0, waterOn);
-    Alarm.alarmRepeat(settings["watercycles"]["1"][0], settings["watercycles"]["1"][1], 0, waterOn);
-    Alarm.alarmRepeat(settings["watercycles"]["2"][0], settings["watercycles"]["2"][1], 0, waterOn);
-    Alarm.alarmRepeat(settings["watercycles"]["3"][0], settings["watercycles"]["3"][1], 0, waterOn);
+    Alarm.alarmRepeat(water_cycles[0][0], water_cycles[0][1], 0, waterOn);
+    Alarm.alarmRepeat(water_cycles[1][0], water_cycles[1][1], 0, waterOn);
+    Alarm.alarmRepeat(water_cycles[2][0], water_cycles[2][1], 0, waterOn);
+    Alarm.alarmRepeat(water_cycles[3][0], water_cycles[3][1], 0, waterOn);
     Alarm.timerRepeat(0, CHECK_WATER_INTERVAL, 0, checkWateringStatus);
-    // TODO: consider using global variables and convert setDefaultValues
-    // to use the global variables as holders blahbla.
-    // I other words populate variables with settings. Write changes based on
-    // the same variables.
-    //Alarm.alarmRepeat(water_cycles[0][0], water_cycles[0][1], 0, waterOn);
-    //Alarm.alarmRepeat(water_cycles[1][0], water_cycles[1][1], 0, waterOn);
-    //Alarm.alarmRepeat(water_cycles[2][0], water_cycles[2][1], 0, waterOn);
-    //Alarm.alarmRepeat(water_cycles[3][0], water_cycles[3][1], 0, waterOn);
-    //Alarm.timerRepeat(0, CHECK_WATER_INTERVAL, 0, checkWateringStatus);
     alarms_set = true;
   }
 }
@@ -282,6 +354,7 @@ void loop() {
   rotary.loop();
   mqtt_client.loop();
   checkLight();
+  checkAirPump();
   phoneHome();
   Alarm.delay(0);
 }
@@ -309,6 +382,7 @@ void phoneHome(){
 void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
   String topic(_topic);
   String value;
+  bool modified = false;
 
   value.reserve(length + 1);
   for (unsigned int i = 0; i < length; i++) {
@@ -319,11 +393,25 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
     if (parseTime(value, light_time_on[0], light_time_on[1])) {
       Serial.print("Setting new light on time: ");
       Serial.println(value);
+      modified = true;
     }
   } else if (topic.endsWith("/light-off")) {
     if (parseTime(value, light_time_off[0], light_time_off[1])) {
       Serial.print("Setting new light off time: ");
       Serial.println(value);
+      modified = true;
+    }
+  } else if (topic.endsWith("/air-on")) {
+    if (parseTime(value, air_time_on[0], air_time_on[1])) {
+      Serial.print("Setting new air on time: ");
+      Serial.println(value);
+      modified = true;
+    }
+  } else if (topic.endsWith("/air-off")) {
+    if (parseTime(value, air_time_off[0], air_time_off[1])) {
+      Serial.print("Setting new air off time: ");
+      Serial.println(value);
+      modified = true;
     }
   } else if (topic.endsWith("/water/filltime")) {
     long filltime = value.toInt();
@@ -331,6 +419,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       Serial.print("Setting new water fill time: ");
       Serial.println(value);
       water_fill_time = value.toInt() * 1000;
+      modified = true;
     }
   } else if (topic.indexOf("/watercycle/") != -1){
     int index = topic.indexOf("/watercycle/");
@@ -352,7 +441,13 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       Alarm.write(cycle_num, AlarmHMS(water_cycles[cycle_num][0], water_cycles[cycle_num][1], 0));
       Serial.print("Alarm time after: ");
       Serial.println(Alarm.read(cycle_num));
+      modified = true;
     }
+  }
+  if (modified){
+    JsonObject& root = json_buffer.createObject();
+    updateSettings(root);
+    writeSettings(root);
   }
 }
 
@@ -462,6 +557,26 @@ void lightOff(){
   }
 }
 
+
+// Air On
+void airOn(){
+  if (!air_on) {
+    Serial.println("Air Pump On, I can breathe!");
+    digitalWrite(AIR_PUMP_PIN, HIGH);
+    air_on = true;
+  }
+}
+
+// Air Off
+void airOff(){
+  if (air_on) {
+    Serial.println("Air Pump Off, Enough fresh air!");
+    digitalWrite(AIR_PUMP_PIN, LOW);
+    air_on = false;
+  }
+}
+
+
 void checkLight() {
   if (!time_synced)
     return ;
@@ -484,6 +599,31 @@ void checkLight() {
         lightOff();
     }
 }
+
+
+void checkAirPump() {
+  if (!time_synced)
+    return ;
+
+  if (air_time_off[0] < air_time_on[0]) {
+      if (hour() >= air_time_on[0] && minute() >= air_time_on[1])
+        airOn();
+      else
+        airOff();
+  }
+  else {
+      if (hour() >= air_time_on[0] && hour() <= air_time_off[0]) {
+        if (minute() >= air_time_on[1] && minute() < air_time_off[1])
+          airOn();
+        else
+          airOff();
+
+      } else {
+        airOff();
+      }
+    }
+}
+
 
 void waterOn(){
   if (water_on){
