@@ -21,6 +21,6 @@ void setupOta() {
   });
 
   // ArduinoOTA.setPassword();
+  ArduinoOTA.setHostname("bitrafHydroponics1");
   ArduinoOTA.begin();
 }
-
