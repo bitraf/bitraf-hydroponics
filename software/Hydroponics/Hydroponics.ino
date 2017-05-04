@@ -71,6 +71,7 @@ const char *mqtt_air_on = MQTT_TOPIC_AIR_ON;
 const char *mqtt_air_off = MQTT_TOPIC_AIR_OFF;
 const char *mqtt_watercycle = MQTT_TOPIC_WATERCYCLE;
 const char *mqtt_water_fill_time = MQTT_TOPIC_WATER_FILL_TIME;
+const char *mqtt_status = MQTT_TOPIC_STATUS;
 
 // LCD setup
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
@@ -101,11 +102,19 @@ void startMQTT(){
   Serial.print("MQTT Connecton state: ");
   Serial.println(mqtt_client.state());
   mqtt_client.subscribe(mqtt_light_on);
+  mqtt_client.loop();
   mqtt_client.subscribe(mqtt_light_off);
+  mqtt_client.loop();
   mqtt_client.subscribe(mqtt_air_on);
+  mqtt_client.loop();
   mqtt_client.subscribe(mqtt_air_off);
+  mqtt_client.loop();
   mqtt_client.subscribe(mqtt_watercycle);
+  mqtt_client.loop();
   mqtt_client.subscribe(mqtt_water_fill_time);
+  mqtt_client.loop();
+  mqtt_client.subscribe(mqtt_status);
+  mqtt_client.loop();
 }
 
 // Start NTP only after IP network is connected
@@ -175,7 +184,7 @@ void setDefaultValues(JsonObject& root){
   cycle_3.add(18);
   cycle_3.add(0);
 
-  root["waterfill"] = 120 * 1000;
+  root["waterfill"] = 180 * 1000;
 }
 
 
@@ -293,7 +302,7 @@ void setup()
   digitalWrite(AIR_PUMP_PIN, LOW);
   pinMode(MOSFET_3, OUTPUT);
   digitalWrite(MOSFET_3, LOW);
-  
+
   Serial.begin(115200);
   Serial.println();
   Serial.println("Bitraf hydroponics");
@@ -351,7 +360,7 @@ void initAlarms(){
 void loop() {
   initAlarms();
   ArduinoOTA.handle();
-  rotary.loop();
+  //rotary.loop();
   mqtt_client.loop();
   checkLight();
   checkAirPump();
@@ -421,6 +430,15 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       water_fill_time = value.toInt() * 1000;
       modified = true;
     }
+  } else if (topic.endsWith("/status")){
+    Serial.println("Status request");
+    JsonObject& root = json_buffer.createObject();
+    updateSettings(root);
+    String status;
+    root["waterfill"].printTo(status);
+    mqtt_client.publish("public/hydroponics-1/status-result", status.c_str());
+    mqtt_client.publish("public/hydroponics-1/status-result", "status");
+    Serial.println(status);
   } else if (topic.indexOf("/watercycle/") != -1){
     int index = topic.indexOf("/watercycle/");
     int cycle_num = topic.substring(index + 12).toInt();
@@ -429,7 +447,12 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       return;
 
     if (cycle_num == -1){
-      Serial.println("Water NOW!");
+      Serial.println("Toggle Water!");
+      if (water_on)
+        waterOff();
+      else
+        waterOn();
+
       // Water NOW or for value amount of time
     } else if (parseTime(value, water_cycles[cycle_num][0], water_cycles[cycle_num][1])){
       Serial.print("Setting new time for water cycle number ");
