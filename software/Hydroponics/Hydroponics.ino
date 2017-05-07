@@ -369,12 +369,10 @@ void loop() {
 }
 
 void phoneHome(){
-  static int i = 0;
-  static int last = 0;
+  static long last = 0;
   if ((millis() - last) > 5100) {
 
     last = millis();
-    Serial.print(i); Serial.print(" ");
     Serial.print(NTP.getTimeDateString()); Serial.print(". ");
     Serial.print("WiFi is ");
     Serial.print(WiFi.isConnected() ? "connected" : "not connected"); Serial.print(". ");
@@ -383,8 +381,6 @@ void phoneHome(){
     Serial.println(NTP.getTimeDateString(NTP.getFirstSync()).c_str());
     Serial.print("Time now: ");
     digitalClockDisplay();
-
-    i++;
   }
 }
 
@@ -435,9 +431,8 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
     JsonObject& root = json_buffer.createObject();
     updateSettings(root);
     String status;
-    root["waterfill"].printTo(status);
+    root.printTo(status);
     mqtt_client.publish("public/hydroponics-1/status-result", status.c_str());
-    mqtt_client.publish("public/hydroponics-1/status-result", "status");
     Serial.println(status);
   } else if (topic.indexOf("/watercycle/") != -1){
     int index = topic.indexOf("/watercycle/");
