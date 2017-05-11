@@ -13,9 +13,16 @@
 #include "wifipassword.h" //This is not commited to git so provide your own like example above.
 #include <ArduinoJson.h>
 #include <FS.h>
+#include <stdio.h>
+
 // Nexa ID
 String tx_nexa = "1010101010101010101010101010101010101010101010101010";
 String ch_nexa="1010";
+
+// Make sure we have a default value. This should be set in wifipassword.h
+#ifndef FORMAT_SPIFFS
+#define FORMAT_SPIFFS false
+#endif
 
 // Settings variables
 unsigned long water_fill_time;
@@ -33,8 +40,12 @@ Tx433_Nexa Nexa(RF_DATA, tx_nexa, ch_nexa);
 
 // MOSFET 3
 const int MOSFET_3 = D4;
+
 // Water PIN
 const int WATER_PUMP_PIN = D6;
+
+// Air pump PIN
+const int AIR_PUMP_PIN = D5;
 
 // Track last water fill
 unsigned long last_fill_start;
@@ -51,27 +62,8 @@ bool air_on = false;
 // Check water interval in minutes
 const uint CHECK_WATER_INTERVAL = 1;
 
-// Air pump PIN
-const int AIR_PUMP_PIN = D5;
-
 // WiFi Variables
 WiFiClient wifi_client;
-
-// MQTT client
-const char *mqtt_address = MQTT_ADDRESS;
-const int mqtt_port = MQTT_PORT;
-const char *mqtt_client_id = MQTT_CLIENT_ID;
-
-PubSubClient mqtt_client(wifi_client);
-
-// MQTT topics
-const char *mqtt_light_on = MQTT_TOPIC_LIGHT_ON;
-const char *mqtt_light_off = MQTT_TOPIC_LIGHT_OFF;
-const char *mqtt_air_on = MQTT_TOPIC_AIR_ON;
-const char *mqtt_air_off = MQTT_TOPIC_AIR_OFF;
-const char *mqtt_watercycle = MQTT_TOPIC_WATERCYCLE;
-const char *mqtt_water_fill_time = MQTT_TOPIC_WATER_FILL_TIME;
-const char *mqtt_status = MQTT_TOPIC_STATUS;
 
 // LCD setup
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
@@ -94,27 +86,39 @@ void intrEncChange2() {
   rotary.intr2();
 }
 
-// MQTT
+// MQTT client
+const char *mqtt_address = "mqtt.bitraf.no";
+const int mqtt_port = 1883;
+const char *mqtt_client_id = MQTT_CLIENT_ID;
+
+PubSubClient mqtt_client(wifi_client);
+
+// MQTT topics
+const int num_topics = 8;
+const char *mqtt_topics[num_topics] = {
+  "public/hydroponics-1/lights-on",
+  "public/hydroponics-1/lights-off",
+  "public/hydroponics-1/air-on",
+  "public/hydroponics-1/air-off",
+  "public/hydroponics-1/water/watercycle/+",
+  "public/hydroponics-1/water/filltime",
+  "public/hydroponics-1/status/+",  //lights-on, lights-off, air-on, air-off, filltime, water[0-3]
+  "public/hydroponics-1/factory-reset"
+};
+
+// MQTT Setup
 void startMQTT(){
   mqtt_client.setServer(mqtt_address, mqtt_port);
   mqtt_client.setCallback(onMqttMsg);
   mqtt_client.connect(mqtt_client_id);
   Serial.print("MQTT Connecton state: ");
   Serial.println(mqtt_client.state());
-  mqtt_client.subscribe(mqtt_light_on);
-  mqtt_client.loop();
-  mqtt_client.subscribe(mqtt_light_off);
-  mqtt_client.loop();
-  mqtt_client.subscribe(mqtt_air_on);
-  mqtt_client.loop();
-  mqtt_client.subscribe(mqtt_air_off);
-  mqtt_client.loop();
-  mqtt_client.subscribe(mqtt_watercycle);
-  mqtt_client.loop();
-  mqtt_client.subscribe(mqtt_water_fill_time);
-  mqtt_client.loop();
-  mqtt_client.subscribe(mqtt_status);
-  mqtt_client.loop();
+
+  // loop through topics and subscribe
+  for (int i = 0; i < num_topics; i++){
+    mqtt_client.subscribe(mqtt_topics[i]);
+    mqtt_client.loop();
+  }
 }
 
 // Start NTP only after IP network is connected
@@ -146,8 +150,6 @@ bool processSyncEvent(NTPSyncEvent_t ntpEvent) {
 boolean time_synced = false; // True if a time even has been triggered
 NTPSyncEvent_t ntpEvent; // Last triggered event
 
-// Settings JSON buffer
-DynamicJsonBuffer json_buffer;
 
 void setDefaultValues(JsonObject& root){
   JsonObject& wifi = root.createNestedObject("wifi");
@@ -184,7 +186,7 @@ void setDefaultValues(JsonObject& root){
   cycle_3.add(18);
   cycle_3.add(0);
 
-  root["waterfill"] = 180 * 1000;
+  root["filltime"] = 180 * 1000;
 }
 
 
@@ -199,7 +201,7 @@ void updateSettings(JsonObject& root){
   light_on.add(light_time_on[1]);
   JsonArray& light_off = light.createNestedArray("off");
   light_off.add(light_time_off[0]);
-  light_off.add(light_time_off[0]);
+  light_off.add(light_time_off[1]);
 
   JsonObject& air = root.createNestedObject("air");
   JsonArray& air_on = air.createNestedArray("on");
@@ -207,7 +209,7 @@ void updateSettings(JsonObject& root){
   air_on.add(air_time_on[1]);
   JsonArray& air_off = air.createNestedArray("off");
   air_off.add(air_time_off[0]);
-  air_off.add(air_time_off[0]);
+  air_off.add(air_time_off[1]);
 
   JsonObject& watercycles = root.createNestedObject("watercycles");
   JsonArray& cycle_0 = watercycles.createNestedArray("0");
@@ -223,12 +225,12 @@ void updateSettings(JsonObject& root){
   cycle_3.add(water_cycles[3][0]);
   cycle_3.add(water_cycles[3][1]);
 
-  root["waterfill"] = water_fill_time;
+  root["filltime"] = water_fill_time;
 }
 
 void applyInitialSettings(JsonObject& root){
   // Water fill time
-  water_fill_time = root["waterfill"];  // seconds * millis
+  water_fill_time = root["filltime"];  // seconds * millis
 
   // Light timers
   light_time_on[0] = root["lights"]["on"][0];
@@ -264,12 +266,14 @@ void readSettings(){
     if (!f){
       Serial.println("No settings file found. Creating initial defaults");
       f.close();
+      DynamicJsonBuffer json_buffer;
       JsonObject& root = json_buffer.createObject();
       setDefaultValues(root);
       writeSettings(root);
     } else {
       // Read settings
       String json = f.readStringUntil('\n');
+      DynamicJsonBuffer json_buffer;
       JsonObject& root = json_buffer.parseObject(json.c_str());
       f.close();
       if (!root.success()){
@@ -323,6 +327,14 @@ void setup()
 
   // load settings
   SPIFFS.begin();
+
+  // Format filesystem if set to do so
+  #if FORMAT_SPIFFS
+    Serial.println("Formatting SPIFFS!");
+    SPIFFS.format();
+  #endif
+
+  // Read or create system settings
   readSettings();
 
   // initialize last_fill_start
@@ -384,6 +396,44 @@ void phoneHome(){
   }
 }
 
+
+void publishStatus(String& key){
+  DynamicJsonBuffer json_buffer;
+  JsonObject& root = json_buffer.createObject();
+  updateSettings(root);
+
+  String status;
+
+  if (key == "lights-on")
+    status = String(root["lights"]["on"][0].as<unsigned int>(), DEC) + String(":") + String(root["lights"]["on"][1].as<unsigned int>(), DEC);
+  else if (key == "lights-off")
+    status = String(root["lights"]["off"][0].as<unsigned int>(), DEC) + String(":") + String(root["lights"]["off"][1].as<unsigned int>(), DEC);
+  else if (key == "air-on")
+    status = String(root["air"]["on"][0].as<unsigned int>(), DEC) + String(":") + String(root["air"]["on"][1].as<unsigned int>(), DEC);
+  else if (key == "air-off")
+    status = String(root["air"]["off"][0].as<unsigned int>(), DEC) + String(":") + String(root["air"]["off"][1].as<unsigned int>(), DEC);
+  else if (key == "filltime")
+    status = String(root["filltime"].as<unsigned long>(), DEC);
+  else if (key == "water0")
+    status = String(root["watercycles"]["0"][0].as<unsigned int>(), DEC) + String(":") + String(root["watercycles"]["0"][1].as<unsigned int>(), DEC);
+  else if (key == "water1")
+    status = String(root["watercycles"]["1"][0].as<unsigned int>(), DEC) + String(":") + String(root["watercycles"]["1"][1].as<unsigned int>(), DEC);
+  else if (key == "water2")
+    status = String(root["watercycles"]["2"][0].as<unsigned int>(), DEC) + String(":") + String(root["watercycles"]["2"][1].as<unsigned int>(), DEC);
+  else if (key == "water3")
+    status = String(root["watercycles"]["3"][0].as<unsigned int>(), DEC) + String(":") + String(root["watercycles"]["3"][1].as<unsigned int>(), DEC);
+  else
+    status = "\"" + key + "\" is not supported yet";
+
+  // Publish status
+  Serial.println(status);
+  bool res;
+  res = mqtt_client.publish("public/hydroponics-1/status-result", status.c_str());
+  if (!res)
+    Serial.println("Publish failed!");
+}
+
+
 void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
   String topic(_topic);
   String value;
@@ -394,13 +444,18 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
     value += static_cast<char>(payload[i]);
   }
 
-  if (topic.endsWith("/light-on")) {
+  if (topic.indexOf("/status/") != -1){
+    int index = topic.indexOf("/status/");
+    String key = topic.substring(index + 8);
+    publishStatus(key);
+
+  } else if (topic.endsWith("/lights-on")) {
     if (parseTime(value, light_time_on[0], light_time_on[1])) {
       Serial.print("Setting new light on time: ");
       Serial.println(value);
       modified = true;
     }
-  } else if (topic.endsWith("/light-off")) {
+  } else if (topic.endsWith("/lights-off")) {
     if (parseTime(value, light_time_off[0], light_time_off[1])) {
       Serial.print("Setting new light off time: ");
       Serial.println(value);
@@ -426,14 +481,6 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       water_fill_time = value.toInt() * 1000;
       modified = true;
     }
-  } else if (topic.endsWith("/status")){
-    Serial.println("Status request");
-    JsonObject& root = json_buffer.createObject();
-    updateSettings(root);
-    String status;
-    root.printTo(status);
-    mqtt_client.publish("public/hydroponics-1/status-result", status.c_str());
-    Serial.println(status);
   } else if (topic.indexOf("/watercycle/") != -1){
     int index = topic.indexOf("/watercycle/");
     int cycle_num = topic.substring(index + 12).toInt();
@@ -462,7 +509,9 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       modified = true;
     }
   }
+
   if (modified){
+    DynamicJsonBuffer json_buffer;
     JsonObject& root = json_buffer.createObject();
     updateSettings(root);
     writeSettings(root);
