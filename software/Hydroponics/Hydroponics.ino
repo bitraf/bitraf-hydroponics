@@ -31,8 +31,8 @@ int light_time_off[2];
 int air_time_on[2];
 int air_time_off[2];
 int water_cycles[4][2];
-const char *wifi_ssid = WIFI_SSID;
-const char *wifi_password = WIFI_PWD;
+const char *wifi_ssid = WIFI_SSID;  //from wifipassword.h
+const char *wifi_password = WIFI_PWD; //from wifipassword.h
 
 // RF transmit
 const int RF_DATA = D3;
@@ -55,9 +55,11 @@ bool water_on = false;
 
 // Track if light is on or should be
 bool light_on = false;
+bool light_override = false;
 
 // Track if air pump is on or should be
 bool air_on = false;
+bool air_override = false;
 
 // Check water interval in minutes
 const uint CHECK_WATER_INTERVAL = 1;
@@ -153,10 +155,6 @@ NTPSyncEvent_t ntpEvent; // Last triggered event
 
 
 void setDefaultValues(JsonObject& root){
-  JsonObject& wifi = root.createNestedObject("wifi");
-  wifi["ssid"] = wifi_ssid;
-  wifi["password"] = wifi_password;
-
   JsonObject& light = root.createNestedObject("lights");
   JsonArray& light_on = light.createNestedArray("on");
   light_on.add(8);
@@ -192,10 +190,6 @@ void setDefaultValues(JsonObject& root){
 
 
 void updateSettings(JsonObject& root){
-  JsonObject& wifi = root.createNestedObject("wifi");
-  wifi["ssid"] = wifi_ssid;
-  wifi["password"] = wifi_password;
-
   JsonObject& light = root.createNestedObject("lights");
   JsonArray& light_on = light.createNestedArray("on");
   light_on.add(light_time_on[0]);
@@ -257,9 +251,6 @@ void applyInitialSettings(JsonObject& root){
   water_cycles[3][0] = root["watercycles"]["3"][0];
   water_cycles[3][1] = root["watercycles"]["3"][1];
 
-  // WiFi
-  wifi_ssid = root["wifi"]["ssid"];
-  wifi_password = root["wifi"]["password"];
 }
 
 void readSettings(){
@@ -681,7 +672,7 @@ void checkLight() {
         lightOff();
     }*/
 
-    
+
 }
 
 
