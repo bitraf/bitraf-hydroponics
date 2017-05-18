@@ -31,8 +31,8 @@ int light_time_off[2];
 int air_time_on[2];
 int air_time_off[2];
 int water_cycles[4][2];
-const char *wifi_ssid;
-const char *wifi_password;
+const char *wifi_ssid = WIFI_SSID;
+const char *wifi_password = WIFI_PWD;
 
 // RF transmit
 const int RF_DATA = D3;
@@ -94,10 +94,11 @@ const char *mqtt_client_id = MQTT_CLIENT_ID;
 PubSubClient mqtt_client(wifi_client);
 
 // MQTT topics
-const int num_topics = 8;
+const int num_topics = 9;
 const char *mqtt_topics[num_topics] = {
   "public/hydroponics-1/lights-on",
   "public/hydroponics-1/lights-off",
+  "public/hydroponics-1/light/command",
   "public/hydroponics-1/air-on",
   "public/hydroponics-1/air-off",
   "public/hydroponics-1/water/watercycle/+",
@@ -153,8 +154,8 @@ NTPSyncEvent_t ntpEvent; // Last triggered event
 
 void setDefaultValues(JsonObject& root){
   JsonObject& wifi = root.createNestedObject("wifi");
-  wifi["ssid"] = WIFI_SSID;
-  wifi["password"] = WIFI_PWD;
+  wifi["ssid"] = wifi_ssid;
+  wifi["password"] = wifi_password;
 
   JsonObject& light = root.createNestedObject("lights");
   JsonArray& light_on = light.createNestedArray("on");
@@ -461,6 +462,14 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       Serial.println(value);
       modified = true;
     }
+  } else if (topic.endsWith("/light/command")) {
+    if(value.equals("on")){
+      Serial.println("Setting light on");
+      lightOn();
+    } else if(value.equals("off")){
+      Serial.println("Setting light off");
+      lightOff();
+    }
   } else if (topic.endsWith("/air-on")) {
     if (parseTime(value, air_time_on[0], air_time_on[1])) {
       Serial.print("Setting new air on time: ");
@@ -648,7 +657,13 @@ void checkLight() {
   if (!time_synced)
     return ;
 
-  if (light_time_off[0] < light_time_on[0]) {
+  if (hour() == light_time_on[0] && minute() == light_time_on[1] && second() == 0)
+        lightOn();
+  else if (hour() == light_time_off[0] && minute() == light_time_off[1] && second() == 0)
+        lightOff();
+
+
+  /*if (light_time_off[0] < light_time_on[0]) {
       if (hour() >= light_time_on[0] && minute() >= light_time_on[1])
         lightOn();
       else
@@ -664,7 +679,9 @@ void checkLight() {
       }
       else
         lightOff();
-    }
+    }*/
+
+    
 }
 
 
