@@ -648,9 +648,10 @@ void rotaryChange(duration_type duration_type, uint16_t duration) {
 // Light On
 void lightOn(){
   if (!light_on) {
-    Serial.println("Light on, Good morning!");
     Nexa.Device_On(0);
     light_on = true;
+    Serial.println("Light on, Good morning!");
+    mqtt_client.publish("public/" DEVICE_ID "/status-result", "lights on");
 
     if (light_override){
       // Restore settings from backup variables
@@ -664,9 +665,10 @@ void lightOn(){
 // Light timer
 void lightOff(){
   if (light_on) {
-    Serial.println("Light Off, Good nights!");
     Nexa.Device_Off(0);
     light_on = false;
+    Serial.println("Light Off, Good nights!");
+    mqtt_client.publish("public/" DEVICE_ID "/status-result", "lights off");
 
     if (light_override){
       light_time_on[0] = light_time_on_prev[0];
@@ -706,9 +708,10 @@ void checkLight() {
 // Air On
 void airOn(){
   if (!air_on) {
-    Serial.println("Air Pump On, I can breathe!");
     digitalWrite(AIR_PUMP_PIN, HIGH);
     air_on = true;
+    Serial.println("Air Pump On, I can breathe!");
+    mqtt_client.publish("public/" DEVICE_ID "/status-result", "air on");
 
     if (air_override){
       air_time_off[0] = air_time_off_prev[0];
@@ -721,9 +724,10 @@ void airOn(){
 // Air Off
 void airOff(){
   if (air_on) {
-    Serial.println("Air Pump Off, Enough fresh air!");
     digitalWrite(AIR_PUMP_PIN, LOW);
     air_on = false;
+    Serial.println("Air Pump Off, Enough fresh air!");
+    mqtt_client.publish("public/" DEVICE_ID "/status-result", "air off");
 
     if (air_override){
       air_time_on[0] = air_time_on_prev[0];
