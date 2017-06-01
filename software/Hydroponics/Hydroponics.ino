@@ -27,12 +27,16 @@ String ch_nexa="1010";
 // Settings variables
 unsigned long water_fill_time;
 int light_time_on[2];
+int light_time_on_prev[2];
 int light_time_off[2];
+int light_time_off_prev[2];
 int air_time_on[2];
+int air_time_on_prev[2];
 int air_time_off[2];
+int air_time_off_prev[2];
 int water_cycles[4][2];
-const char *wifi_ssid = WIFI_SSID;
-const char *wifi_password = WIFI_PWD;
+const char *wifi_ssid = WIFI_SSID;  //from wifipassword.h
+const char *wifi_password = WIFI_PWD; //from wifipassword.h
 
 // RF transmit
 const int RF_DATA = D3;
@@ -55,9 +59,11 @@ bool water_on = false;
 
 // Track if light is on or should be
 bool light_on = false;
+bool light_override = false;
 
 // Track if air pump is on or should be
 bool air_on = false;
+bool air_override = false;
 
 // Check water interval in minutes
 const uint CHECK_WATER_INTERVAL = 1;
@@ -96,15 +102,15 @@ PubSubClient mqtt_client(wifi_client);
 // MQTT topics
 const int num_topics = 9;
 const char *mqtt_topics[num_topics] = {
-  "public/hydroponics-1/lights-on",
-  "public/hydroponics-1/lights-off",
-  "public/hydroponics-1/light/command",
-  "public/hydroponics-1/air-on",
-  "public/hydroponics-1/air-off",
-  "public/hydroponics-1/water/watercycle/+",
-  "public/hydroponics-1/water/filltime",
-  "public/hydroponics-1/status/+",  //lights-on, lights-off, air-on, air-off, filltime, water[0-3]
-  "public/hydroponics-1/factory-reset"
+  "public/" DEVICE_ID "/lights-on",
+  "public/" DEVICE_ID "/lights-off",
+  "public/" DEVICE_ID "/light/command",
+  "public/" DEVICE_ID "/air-on",
+  "public/" DEVICE_ID "/air-off",
+  "public/" DEVICE_ID "/water/watercycle/+",
+  "public/" DEVICE_ID "/water/filltime",
+  "public/" DEVICE_ID "/status/+",  //lights-on, lights-off, air-on, air-off, filltime, water[0-3]
+  "public/" DEVICE_ID "/factory-reset"
 };
 
 // MQTT Setup
@@ -117,7 +123,7 @@ void startMQTT(){
 
   // loop through topics and subscribe
   for (int i = 0; i < num_topics; i++){
-    mqtt_client.subscribe(mqtt_topics[i]);
+    mqtt_client.subscribe(mqtt_topics[i], 1);
     mqtt_client.loop();
   }
 }
@@ -153,10 +159,6 @@ NTPSyncEvent_t ntpEvent; // Last triggered event
 
 
 void setDefaultValues(JsonObject& root){
-  JsonObject& wifi = root.createNestedObject("wifi");
-  wifi["ssid"] = wifi_ssid;
-  wifi["password"] = wifi_password;
-
   JsonObject& light = root.createNestedObject("lights");
   JsonArray& light_on = light.createNestedArray("on");
   light_on.add(8);
@@ -192,10 +194,6 @@ void setDefaultValues(JsonObject& root){
 
 
 void updateSettings(JsonObject& root){
-  JsonObject& wifi = root.createNestedObject("wifi");
-  wifi["ssid"] = wifi_ssid;
-  wifi["password"] = wifi_password;
-
   JsonObject& light = root.createNestedObject("lights");
   JsonArray& light_on = light.createNestedArray("on");
   light_on.add(light_time_on[0]);
@@ -257,9 +255,6 @@ void applyInitialSettings(JsonObject& root){
   water_cycles[3][0] = root["watercycles"]["3"][0];
   water_cycles[3][1] = root["watercycles"]["3"][1];
 
-  // WiFi
-  wifi_ssid = root["wifi"]["ssid"];
-  wifi_password = root["wifi"]["password"];
 }
 
 void readSettings(){
@@ -429,7 +424,7 @@ void publishStatus(String& key){
   // Publish status
   Serial.println(status);
   bool res;
-  res = mqtt_client.publish("public/hydroponics-1/status-result", status.c_str());
+  res = mqtt_client.publish("public/" DEVICE_ID "/status-result", status.c_str());
   if (!res)
     Serial.println("Publish failed!");
 }
@@ -451,33 +446,57 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
     publishStatus(key);
 
   } else if (topic.endsWith("/lights-on")) {
-    if (parseTime(value, light_time_on[0], light_time_on[1])) {
+    if (value == "now"){
+      Serial.println("Lights on now!");
+      light_time_on_prev[0] = light_time_on[0];
+      light_time_on_prev[1] = light_time_on[1];
+      light_time_on[0] = hour();
+      light_time_on[1] = minute();
+      lightOn();
+      light_override = true;
+    } else if (parseTime(value, light_time_on[0], light_time_on[1])) {
       Serial.print("Setting new light on time: ");
       Serial.println(value);
       modified = true;
     }
   } else if (topic.endsWith("/lights-off")) {
-    if (parseTime(value, light_time_off[0], light_time_off[1])) {
+    if (value == "now"){
+      Serial.println("Lights off now!");
+      light_time_off_prev[0] = light_time_off[0];
+      light_time_off_prev[1] = light_time_off[1];
+      light_time_off[0] = hour();
+      light_time_off[1] = minute();
+      lightOff();
+      light_override = true;
+    } else if (parseTime(value, light_time_off[0], light_time_off[1])) {
       Serial.print("Setting new light off time: ");
       Serial.println(value);
       modified = true;
     }
-  } else if (topic.endsWith("/light/command")) {
-    if(value.equals("on")){
-      Serial.println("Setting light on");
-      lightOn();
-    } else if(value.equals("off")){
-      Serial.println("Setting light off");
-      lightOff();
-    }
   } else if (topic.endsWith("/air-on")) {
-    if (parseTime(value, air_time_on[0], air_time_on[1])) {
+    if (value == "now"){
+      Serial.println("Air on now!");
+      air_time_on_prev[0] = air_time_on[0];
+      air_time_on_prev[1] = air_time_on[1];
+      air_time_on[0] = hour();
+      air_time_on[1] = minute();
+      airOn();
+      air_override = true;
+    } else if (parseTime(value, air_time_on[0], air_time_on[1])) {
       Serial.print("Setting new air on time: ");
       Serial.println(value);
       modified = true;
     }
   } else if (topic.endsWith("/air-off")) {
-    if (parseTime(value, air_time_off[0], air_time_off[1])) {
+    if (value == "now"){
+      Serial.println("Air off now!");
+      air_time_off_prev[0] = air_time_off[0];
+      air_time_off_prev[1] = air_time_off[1];
+      air_time_off[0] = hour();
+      air_time_off[1] = minute();
+      airOff();
+      air_override = true;
+    } else if (parseTime(value, air_time_off[0], air_time_off[1])) {
       Serial.print("Setting new air off time: ");
       Serial.println(value);
       modified = true;
@@ -621,6 +640,13 @@ void lightOn(){
     Serial.println("Light on, Good morning!");
     Nexa.Device_On(0);
     light_on = true;
+
+    if (light_override){
+      // Restore settings from backup variables
+      light_time_off[0] = light_time_off_prev[0];
+      light_time_off[1] = light_time_off_prev[1];
+      light_override = false;
+    }
   }
 }
 
@@ -630,25 +656,12 @@ void lightOff(){
     Serial.println("Light Off, Good nights!");
     Nexa.Device_Off(0);
     light_on = false;
-  }
-}
 
-
-// Air On
-void airOn(){
-  if (!air_on) {
-    Serial.println("Air Pump On, I can breathe!");
-    digitalWrite(AIR_PUMP_PIN, HIGH);
-    air_on = true;
-  }
-}
-
-// Air Off
-void airOff(){
-  if (air_on) {
-    Serial.println("Air Pump Off, Enough fresh air!");
-    digitalWrite(AIR_PUMP_PIN, LOW);
-    air_on = false;
+    if (light_override){
+      light_time_on[0] = light_time_on_prev[0];
+      light_time_on[1] = light_time_on_prev[1];
+      light_override = false;
+    }
   }
 }
 
@@ -657,13 +670,7 @@ void checkLight() {
   if (!time_synced)
     return ;
 
-  if (hour() == light_time_on[0] && minute() == light_time_on[1] && second() == 0)
-        lightOn();
-  else if (hour() == light_time_off[0] && minute() == light_time_off[1] && second() == 0)
-        lightOff();
-
-
-  /*if (light_time_off[0] < light_time_on[0]) {
+  if (light_time_off[0] < light_time_on[0]) {
       if (hour() >= light_time_on[0] && minute() >= light_time_on[1])
         lightOn();
       else
@@ -679,9 +686,40 @@ void checkLight() {
       }
       else
         lightOff();
-    }*/
+    }
 
-    
+
+}
+
+
+// Air On
+void airOn(){
+  if (!air_on) {
+    Serial.println("Air Pump On, I can breathe!");
+    digitalWrite(AIR_PUMP_PIN, HIGH);
+    air_on = true;
+
+    if (air_override){
+      air_time_off[0] = air_time_off_prev[0];
+      air_time_off[1] = air_time_off_prev[1];
+      air_override = false;
+    }
+  }
+}
+
+// Air Off
+void airOff(){
+  if (air_on) {
+    Serial.println("Air Pump Off, Enough fresh air!");
+    digitalWrite(AIR_PUMP_PIN, LOW);
+    air_on = false;
+
+    if (air_override){
+      air_time_on[0] = air_time_on_prev[0];
+      air_time_on[1] = air_time_on_prev[1];
+      air_override = false;
+    }
+  }
 }
 
 

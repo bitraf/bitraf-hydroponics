@@ -1,5 +1,6 @@
 #include <ArduinoOTA.h>
 #include "Ota.h"
+#include "wifipassword.h"
 
 void setupOta() {
   ArduinoOTA.onStart([]() {
@@ -21,6 +22,6 @@ void setupOta() {
   });
 
   // ArduinoOTA.setPassword();
-  ArduinoOTA.setHostname("bitrafHydroponics1");
+  ArduinoOTA.setHostname(DEVICE_ID);
   ArduinoOTA.begin();
 }
