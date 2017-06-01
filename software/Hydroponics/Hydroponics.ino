@@ -420,7 +420,7 @@ void publishStatus(String& key){
   else if (key == "air-off")
     status = String(root["air"]["off"][0].as<unsigned int>(), DEC) + String(":") + String(root["air"]["off"][1].as<unsigned int>(), DEC);
   else if (key == "filltime")
-    status = String(root["filltime"].as<unsigned long>(), DEC);
+    status = String(root["filltime"].as<unsigned long>() / 1000, DEC);
   else if (key == "water0")
     status = String(root["watercycles"]["0"][0].as<unsigned int>(), DEC) + String(":") + String(root["watercycles"]["0"][1].as<unsigned int>(), DEC);
   else if (key == "water1")
