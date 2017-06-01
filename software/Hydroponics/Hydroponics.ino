@@ -1,3 +1,14 @@
+// begin wifipassword.h example
+//
+// #define WIFI_SSID "myrouter"
+// #define WIFI_PWD "myrouterspassword"
+//
+// #define DEVICE_ID "hydroponics-1"
+// #define MQTT_CLIENT_ID DEVICE_ID
+// #define FORMAT_SPIFFS false
+//
+// End wifipassword.h example
+
 
 #include <Wire.h>  // This library is already built in to the Arduino IDE
 #include <ArduinoOTA.h>
