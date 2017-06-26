@@ -268,31 +268,29 @@ void applyInitialSettings(JsonObject& root){
 
 }
 
-void readSettings(){
-    File f = SPIFFS.open("/hydrosettings.json", "r");
-    if (!f){
-      Serial.println("No settings file found. Creating initial defaults");
-      f.close();
-      DynamicJsonBuffer json_buffer;
-      JsonObject& root = json_buffer.createObject();
-      setDefaultValues(root);
-      writeSettings(root);
-    } else {
-      // Read settings
-      String json = f.readStringUntil('\n');
-      DynamicJsonBuffer json_buffer;
-      JsonObject& root = json_buffer.parseObject(json.c_str());
-      f.close();
-      if (!root.success()){
-        Serial.println("Parsing json failed!");
-      }
-      else {
-        Serial.println("Parsing json succeeded!");
-        root.printTo(Serial);
-        applyInitialSettings(root);
-      }
-    }
-  }
+bool settingFileExists(){
+  File f = SPIFFS.open("/hydrosettings.json", "r");
+
+  bool found;
+
+  if (!f)
+    found = false;
+  else
+    found = true;
+
+  f.close();
+  return found;
+
+}
+
+String readSettings(){
+  // Read settings file
+  File f = SPIFFS.open("/hydrosettings.json", "r");
+  String json = f.readStringUntil('\n');
+  f.close();
+
+  return json.c_str();
+}
 
 void writeSettings(JsonObject& root){
   // Save settings
@@ -342,7 +340,27 @@ void setup()
   #endif
 
   // Read or create system settings
-  readSettings();
+  DynamicJsonBuffer json_buffer;
+  if (settingFileExists()){
+    String json;
+    json = readSettings();
+    JsonObject& root = json_buffer.parseObject(json.c_str());
+
+    if (!root.success()){
+      Serial.println("Parsing json failed!");
+
+    } else {
+      Serial.println("Parsing json succeeded!");
+      root.printTo(Serial);
+    }
+    applyInitialSettings(root);
+  // Create default settings
+  } else {
+    Serial.println("No settings file found. Creating initial defaults");
+    JsonObject& root = json_buffer.createObject();
+    setDefaultValues(root);
+    writeSettings(root);
+  }
 
   // initialize last_fill_start
   last_fill_start = millis();
@@ -459,8 +477,6 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
   } else if (topic.endsWith("/lights-on")) {
     if (value == "now"){
       Serial.println("Lights on now!");
-      light_time_on_prev[0] = light_time_on[0];
-      light_time_on_prev[1] = light_time_on[1];
       light_time_on[0] = hour();
       light_time_on[1] = minute();
       lightOn();
@@ -473,8 +489,6 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
   } else if (topic.endsWith("/lights-off")) {
     if (value == "now"){
       Serial.println("Lights off now!");
-      light_time_off_prev[0] = light_time_off[0];
-      light_time_off_prev[1] = light_time_off[1];
       light_time_off[0] = hour();
       light_time_off[1] = minute();
       lightOff();
@@ -487,8 +501,6 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
   } else if (topic.endsWith("/air-on")) {
     if (value == "now"){
       Serial.println("Air on now!");
-      air_time_on_prev[0] = air_time_on[0];
-      air_time_on_prev[1] = air_time_on[1];
       air_time_on[0] = hour();
       air_time_on[1] = minute();
       airOn();
@@ -501,8 +513,6 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
   } else if (topic.endsWith("/air-off")) {
     if (value == "now"){
       Serial.println("Air off now!");
-      air_time_off_prev[0] = air_time_off[0];
-      air_time_off_prev[1] = air_time_off[1];
       air_time_off[0] = hour();
       air_time_off[1] = minute();
       airOff();
@@ -654,9 +664,14 @@ void lightOn(){
     mqtt_client.publish("public/" DEVICE_ID "/status-result", "lights on");
 
     if (light_override){
-      // Restore settings from backup variables
-      light_time_off[0] = light_time_off_prev[0];
-      light_time_off[1] = light_time_off_prev[1];
+      // Restore settings from stored settings
+      String json;
+      json = readSettings();
+      DynamicJsonBuffer json_buffer;
+      JsonObject& root = json_buffer.parseObject(json.c_str());
+
+      light_time_off[0] = root["lights"]["off"][0];
+      light_time_off[1] = root["lights"]["off"][1];
       light_override = false;
     }
   }
@@ -671,8 +686,14 @@ void lightOff(){
     mqtt_client.publish("public/" DEVICE_ID "/status-result", "lights off");
 
     if (light_override){
-      light_time_on[0] = light_time_on_prev[0];
-      light_time_on[1] = light_time_on_prev[1];
+      // Restore settings from stored settings
+      String json;
+      json = readSettings();
+      DynamicJsonBuffer json_buffer;
+      JsonObject& root = json_buffer.parseObject(json.c_str());
+
+      light_time_on[0] = root["lights"]["on"][0];
+      light_time_on[1] = root["lights"]["on"][1];
       light_override = false;
     }
   }
@@ -714,8 +735,14 @@ void airOn(){
     mqtt_client.publish("public/" DEVICE_ID "/status-result", "air on");
 
     if (air_override){
-      air_time_off[0] = air_time_off_prev[0];
-      air_time_off[1] = air_time_off_prev[1];
+      // Restore settings from stored settings
+      String json;
+      json = readSettings();
+      DynamicJsonBuffer json_buffer;
+      JsonObject& root = json_buffer.parseObject(json.c_str());
+
+      air_time_off[0] = root["air"]["off"][0];
+      air_time_off[1] = root["air"]["off"][1];
       air_override = false;
     }
   }
@@ -730,8 +757,14 @@ void airOff(){
     mqtt_client.publish("public/" DEVICE_ID "/status-result", "air off");
 
     if (air_override){
-      air_time_on[0] = air_time_on_prev[0];
-      air_time_on[1] = air_time_on_prev[1];
+      // Restore settings from stored settings
+      String json;
+      json = readSettings();
+      DynamicJsonBuffer json_buffer;
+      JsonObject& root = json_buffer.parseObject(json.c_str());
+
+      air_time_on[0] = root["air"]["on"][0];
+      air_time_on[1] = root["air"]["on"][1];
       air_override = false;
     }
   }
