@@ -423,30 +423,26 @@ void phoneHome(){
 
 
 void publishStatus(String& key){
-  DynamicJsonBuffer json_buffer;
-  JsonObject& root = json_buffer.createObject();
-  updateSettings(root);
-
   String status;
 
   if (key == "lights-on")
-    status = String(root["lights"]["on"][0].as<unsigned int>(), DEC) + String(":") + String(root["lights"]["on"][1].as<unsigned int>(), DEC);
+    status = String(light_time_on[0], DEC) + String(":") + String(light_time_on[1], DEC);
   else if (key == "lights-off")
-    status = String(root["lights"]["off"][0].as<unsigned int>(), DEC) + String(":") + String(root["lights"]["off"][1].as<unsigned int>(), DEC);
+    status = String(light_time_off[0], DEC) + String(":") + String(light_time_off[1], DEC);
   else if (key == "air-on")
-    status = String(root["air"]["on"][0].as<unsigned int>(), DEC) + String(":") + String(root["air"]["on"][1].as<unsigned int>(), DEC);
+    status = String(air_time_on[0], DEC) + String(":") + String(air_time_on[1], DEC);
   else if (key == "air-off")
-    status = String(root["air"]["off"][0].as<unsigned int>(), DEC) + String(":") + String(root["air"]["off"][1].as<unsigned int>(), DEC);
+    status = String(air_time_off[0], DEC) + String(":") + String(air_time_off[1], DEC);
   else if (key == "filltime")
-    status = String(root["filltime"].as<unsigned long>() / 1000, DEC);
+    status = String(water_fill_time / 1000, DEC);
   else if (key == "water0")
-    status = String(root["watercycles"]["0"][0].as<unsigned int>(), DEC) + String(":") + String(root["watercycles"]["0"][1].as<unsigned int>(), DEC);
+    status = String(water_cycles[0][0], DEC) + String(":") + String(water_cycles[0][1], DEC);
   else if (key == "water1")
-    status = String(root["watercycles"]["1"][0].as<unsigned int>(), DEC) + String(":") + String(root["watercycles"]["1"][1].as<unsigned int>(), DEC);
+    status = String(water_cycles[1][0], DEC) + String(":") + String(water_cycles[1][1], DEC);
   else if (key == "water2")
-    status = String(root["watercycles"]["2"][0].as<unsigned int>(), DEC) + String(":") + String(root["watercycles"]["2"][1].as<unsigned int>(), DEC);
+    status = String(water_cycles[2][0], DEC) + String(":") + String(water_cycles[2][1], DEC);
   else if (key == "water3")
-    status = String(root["watercycles"]["3"][0].as<unsigned int>(), DEC) + String(":") + String(root["watercycles"]["3"][1].as<unsigned int>(), DEC);
+    status = String(water_cycles[3][0], DEC) + String(":") + String(water_cycles[3][1], DEC);
   else
     status = "\"" + key + "\" is not supported yet";
 
@@ -704,7 +700,7 @@ void checkLight() {
   if (!time_synced)
     return ;
 
-  if (light_time_off[0] < light_time_on[0]) {
+  if (light_time_off[0] <= light_time_on[0]) {
       if (hour() >= light_time_on[0] && minute() >= light_time_on[1])
         lightOn();
       else
@@ -775,7 +771,7 @@ void checkAirPump() {
   if (!time_synced)
     return ;
 
-  if (air_time_off[0] < air_time_on[0]) {
+  if (air_time_off[0] <= air_time_on[0]) {
       if (hour() >= air_time_on[0] && minute() >= air_time_on[1])
         airOn();
       else
