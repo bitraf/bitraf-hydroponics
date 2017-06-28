@@ -49,6 +49,9 @@ int water_cycles[4][2];
 const char *wifi_ssid = WIFI_SSID;  //from wifipassword.h
 const char *wifi_password = WIFI_PWD; //from wifipassword.h
 
+static const bool ON = true;
+static const bool OFF = false;
+
 // RF transmit
 const int RF_DATA = D3;
 Tx433_Nexa Nexa(RF_DATA, tx_nexa, ch_nexa);
@@ -371,6 +374,7 @@ void setup()
     if (time_synced){
       if (!mqtt_client.connected())
         startMQTT();
+        phoneHome();
     }
 	});
 
@@ -399,9 +403,9 @@ void loop() {
   ArduinoOTA.handle();
   //rotary.loop();
   mqtt_client.loop();
-  checkLight();
-  checkAirPump();
-  phoneHome();
+  checkAction(light_time_on, light_time_off, toggleLights);
+  checkAction(air_time_on, air_time_off, toggleAir);
+  //phoneHome();
   Alarm.delay(0);
 }
 
@@ -475,7 +479,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       Serial.println("Lights on now!");
       light_time_on[0] = hour();
       light_time_on[1] = minute();
-      lightOn();
+      toggleLights(ON);
       light_override = true;
     } else if (parseTime(value, light_time_on[0], light_time_on[1])) {
       Serial.print("Setting new light on time: ");
@@ -487,7 +491,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       Serial.println("Lights off now!");
       light_time_off[0] = hour();
       light_time_off[1] = minute();
-      lightOff();
+      toggleLights(OFF);
       light_override = true;
     } else if (parseTime(value, light_time_off[0], light_time_off[1])) {
       Serial.print("Setting new light off time: ");
@@ -499,7 +503,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       Serial.println("Air on now!");
       air_time_on[0] = hour();
       air_time_on[1] = minute();
-      airOn();
+      toggleAir(ON);
       air_override = true;
     } else if (parseTime(value, air_time_on[0], air_time_on[1])) {
       Serial.print("Setting new air on time: ");
@@ -511,7 +515,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       Serial.println("Air off now!");
       air_time_off[0] = hour();
       air_time_off[1] = minute();
-      airOff();
+      toggleAir(OFF);
       air_override = true;
     } else if (parseTime(value, air_time_off[0], air_time_off[1])) {
       Serial.print("Setting new air off time: ");
@@ -651,145 +655,114 @@ void rotaryChange(duration_type duration_type, uint16_t duration) {
   Serial.println(")");
 }
 
-// Light On
-void lightOn(){
-  if (!light_on) {
-    Nexa.Device_On(0);
-    light_on = true;
-    Serial.println("Light on, Good morning!");
-    mqtt_client.publish("public/" DEVICE_ID "/status-result", "lights on");
-
-    if (light_override){
-      // Restore settings from stored settings
-      String json;
-      json = readSettings();
-      DynamicJsonBuffer json_buffer;
-      JsonObject& root = json_buffer.parseObject(json.c_str());
-
-      light_time_off[0] = root["lights"]["off"][0];
-      light_time_off[1] = root["lights"]["off"][1];
-      light_override = false;
-    }
-  }
-}
-
-// Light timer
-void lightOff(){
-  if (light_on) {
-    Nexa.Device_Off(0);
-    light_on = false;
-    Serial.println("Light Off, Good nights!");
-    mqtt_client.publish("public/" DEVICE_ID "/status-result", "lights off");
-
-    if (light_override){
-      // Restore settings from stored settings
-      String json;
-      json = readSettings();
-      DynamicJsonBuffer json_buffer;
-      JsonObject& root = json_buffer.parseObject(json.c_str());
-
-      light_time_on[0] = root["lights"]["on"][0];
-      light_time_on[1] = root["lights"]["on"][1];
-      light_override = false;
-    }
-  }
-}
-
-
-void checkLight() {
+// check if it's time to toggle passed function
+void checkAction(int (& t_on)[2], int (& t_off)[2], void (* func)(bool state)){
   if (!time_synced)
     return ;
 
-  if (light_time_off[0] <= light_time_on[0]) {
-      if (hour() >= light_time_on[0] && minute() >= light_time_on[1])
-        lightOn();
-      else
-        lightOff();
-  }
-  else {
-      if (hour() >= light_time_on[0] && hour() <= light_time_off[0]) {
-        if (minute() >= light_time_on[1] && minute() < light_time_off[1])
-          lightOn();
-
-        else
-          lightOff();
-      }
-      else
-        lightOff();
-    }
-
-
-}
-
-
-// Air On
-void airOn(){
-  if (!air_on) {
-    digitalWrite(AIR_PUMP_PIN, HIGH);
-    air_on = true;
-    Serial.println("Air Pump On, I can breathe!");
-    mqtt_client.publish("public/" DEVICE_ID "/status-result", "air on");
-
-    if (air_override){
-      // Restore settings from stored settings
-      String json;
-      json = readSettings();
-      DynamicJsonBuffer json_buffer;
-      JsonObject& root = json_buffer.parseObject(json.c_str());
-
-      air_time_off[0] = root["air"]["off"][0];
-      air_time_off[1] = root["air"]["off"][1];
-      air_override = false;
-    }
-  }
-}
-
-// Air Off
-void airOff(){
-  if (air_on) {
-    digitalWrite(AIR_PUMP_PIN, LOW);
-    air_on = false;
-    Serial.println("Air Pump Off, Enough fresh air!");
-    mqtt_client.publish("public/" DEVICE_ID "/status-result", "air off");
-
-    if (air_override){
-      // Restore settings from stored settings
-      String json;
-      json = readSettings();
-      DynamicJsonBuffer json_buffer;
-      JsonObject& root = json_buffer.parseObject(json.c_str());
-
-      air_time_on[0] = root["air"]["on"][0];
-      air_time_on[1] = root["air"]["on"][1];
-      air_override = false;
-    }
-  }
-}
-
-
-void checkAirPump() {
-  if (!time_synced)
-    return ;
-
-  if (air_time_off[0] <= air_time_on[0]) {
-      if (hour() >= air_time_on[0] && minute() >= air_time_on[1])
-        airOn();
-      else
-        airOff();
-  }
-  else {
-      if (hour() >= air_time_on[0] && hour() <= air_time_off[0]) {
-        if (minute() >= air_time_on[1] && minute() < air_time_off[1])
-          airOn();
-        else
-          airOff();
-
+  // ON < OFF
+  if (t_on[0] <= t_off[0]){
+    if (hour() >= t_on[0] && hour() <= t_off[0]){
+      if (minute() >= t_on[1] && minute() < t_off[1]){
+        func(ON);
       } else {
-        airOff();
+        func(OFF);
       }
     }
+  // ON > OFF
+  } else {
+    if (hour() >= t_on[0] && hour() >= t_off[0]){
+      if (minute() >= t_on[1] && minute() > t_off[1]){
+        func(ON);
+      } else {
+        func(OFF);
+      }
+    } else {
+      func(OFF);
+    }
+  }
 }
 
+// switch lights
+void toggleLights(bool state){
+  if (state){
+    if (!light_on) {
+      Nexa.Device_On(0);
+      light_on = true;
+      Serial.println("Light on, Good morning!");
+      mqtt_client.publish("public/" DEVICE_ID "/status-result", "lights on");
+
+      if (light_override){
+        // Restore settings
+        String json = readSettings();
+        DynamicJsonBuffer json_buffer;
+        JsonObject& root = json_buffer.parseObject(json.c_str());
+
+        light_time_off[0] = root["lights"]["off"][0];
+        light_time_off[1] = root["lights"]["off"][1];
+        light_override = false;
+      }
+    }
+  } else {
+    if (light_on) {
+      Nexa.Device_Off(0);
+      light_on = false;
+      Serial.println("Light Off, Good nights!");
+      mqtt_client.publish("public/" DEVICE_ID "/status-result", "lights off");
+
+      if (light_override){
+        // Restore settings
+        String json = readSettings();
+        DynamicJsonBuffer json_buffer;
+        JsonObject& root = json_buffer.parseObject(json.c_str());
+
+        light_time_on[0] = root["lights"]["on"][0];
+        light_time_on[1] = root["lights"]["on"][1];
+        light_override = false;
+      }
+    }
+  }
+}
+
+void toggleAir(bool state){
+  if (state){
+    if (!air_on) {
+      digitalWrite(AIR_PUMP_PIN, HIGH);
+      air_on = true;
+      Serial.println("Air Pump On, I can breathe!");
+      mqtt_client.publish("public/" DEVICE_ID "/status-result", "air on");
+
+      if (air_override){
+        // Restore settings
+        String json = readSettings();
+        DynamicJsonBuffer json_buffer;
+        JsonObject& root = json_buffer.parseObject(json.c_str());
+
+        air_time_off[0] = root["air"]["off"][0];
+        air_time_off[1] = root["air"]["off"][1];
+        air_override = false;
+      }
+    }
+  } else {
+    if (air_on) {
+      digitalWrite(AIR_PUMP_PIN, LOW);
+      air_on = false;
+      Serial.println("Air Pump Off, Enough fresh air!");
+      mqtt_client.publish("public/" DEVICE_ID "/status-result", "air off");
+
+      if (air_override){
+        // Restore settings
+        String json = readSettings();
+        DynamicJsonBuffer json_buffer;
+        JsonObject& root = json_buffer.parseObject(json.c_str());
+
+        air_time_on[0] = root["air"]["on"][0];
+        air_time_on[1] = root["air"]["on"][1];
+        air_override = false;
+      }
+    }
+  }
+}
 
 void waterOn(){
   if (water_on){
