@@ -655,7 +655,6 @@ void rotaryChange(duration_type duration_type, uint16_t duration) {
   Serial.println(")");
 }
 
-// override at 0:43 while on is 0:2 and off ir 10:0 ---> now < on && now < off
 // check if it's time to toggle passed function
 void checkAction(int (& t_on)[2], int (& t_off)[2], void (* func)(bool state)){
   if (!time_synced)
