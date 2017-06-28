@@ -374,6 +374,7 @@ void setup()
     if (time_synced){
       if (!mqtt_client.connected())
         startMQTT();
+        phoneHome();
     }
 	});
 
@@ -404,9 +405,7 @@ void loop() {
   mqtt_client.loop();
   checkAction(light_time_on, light_time_off, toggleLights);
   checkAction(air_time_on, air_time_off, toggleAir);
-  //checkLight();
-  //checkAirPump();
-  phoneHome();
+  //phoneHome();
   Alarm.delay(0);
 }
 
@@ -504,7 +503,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       Serial.println("Air on now!");
       air_time_on[0] = hour();
       air_time_on[1] = minute();
-      airOn();
+      toggleAir(ON);
       air_override = true;
     } else if (parseTime(value, air_time_on[0], air_time_on[1])) {
       Serial.print("Setting new air on time: ");
@@ -516,7 +515,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       Serial.println("Air off now!");
       air_time_off[0] = hour();
       air_time_off[1] = minute();
-      airOff();
+      toggleAir(OFF);
       air_override = true;
     } else if (parseTime(value, air_time_off[0], air_time_off[1])) {
       Serial.print("Setting new air off time: ");
@@ -656,14 +655,37 @@ void rotaryChange(duration_type duration_type, uint16_t duration) {
   Serial.println(")");
 }
 
+// override at 0:43 while on is 0:2 and off ir 10:0 ---> now < on && now < off
+// check if it's time to toggle passed function
+void checkAction(int (& t_on)[2], int (& t_off)[2], void (* func)(bool state)){
+  if (!time_synced)
+    return ;
+
+  // ON < OFF
+  if (t_on[0] <= t_off[0]){
+    if (hour() >= t_on[0] && hour() <= t_off[0]){
+      if (minute() >= t_on[1] && minute() < t_off[1]){
+        func(ON);
+      } else {
+        func(OFF);
+      }
+    }
+  // ON > OFF
+  } else {
+    if (hour() >= t_on[0] && hour() >= t_off[0]){
+      if (minute() >= t_on[1] && minute() > t_off[1]){
+        func(ON);
+      } else {
+        func(OFF);
+      }
+    } else {
+      func(OFF);
+    }
+  }
+}
+
 // switch lights
 void toggleLights(bool state){
-  if (light_override){
-    // Read settings from file
-    String json = readSettings();
-    DynamicJsonBuffer json_buffer;
-    JsonObject& root = json_buffer.parseObject(json.c_str());
-
   if (state){
     if (!light_on) {
       Nexa.Device_On(0);
@@ -673,6 +695,10 @@ void toggleLights(bool state){
 
       if (light_override){
         // Restore settings
+        String json = readSettings();
+        DynamicJsonBuffer json_buffer;
+        JsonObject& root = json_buffer.parseObject(json.c_str());
+
         light_time_off[0] = root["lights"]["off"][0];
         light_time_off[1] = root["lights"]["off"][1];
         light_override = false;
@@ -687,6 +713,10 @@ void toggleLights(bool state){
 
       if (light_override){
         // Restore settings
+        String json = readSettings();
+        DynamicJsonBuffer json_buffer;
+        JsonObject& root = json_buffer.parseObject(json.c_str());
+
         light_time_on[0] = root["lights"]["on"][0];
         light_time_on[1] = root["lights"]["on"][1];
         light_override = false;
@@ -696,12 +726,6 @@ void toggleLights(bool state){
 }
 
 void toggleAir(bool state){
-  if (air_override){
-    // Read settings from file
-    String json = readSettings();
-    DynamicJsonBuffer json_buffer;
-    JsonObject& root = json_buffer.parseObject(json.c_str());
-
   if (state){
     if (!air_on) {
       digitalWrite(AIR_PUMP_PIN, HIGH);
@@ -711,6 +735,10 @@ void toggleAir(bool state){
 
       if (air_override){
         // Restore settings
+        String json = readSettings();
+        DynamicJsonBuffer json_buffer;
+        JsonObject& root = json_buffer.parseObject(json.c_str());
+
         air_time_off[0] = root["air"]["off"][0];
         air_time_off[1] = root["air"]["off"][1];
         air_override = false;
@@ -725,35 +753,16 @@ void toggleAir(bool state){
 
       if (air_override){
         // Restore settings
+        String json = readSettings();
+        DynamicJsonBuffer json_buffer;
+        JsonObject& root = json_buffer.parseObject(json.c_str());
+
         air_time_on[0] = root["air"]["on"][0];
         air_time_on[1] = root["air"]["on"][1];
         air_override = false;
       }
     }
   }
-}
-
-void checkAction(int (& t_on)[2], int (& t_off)[2], void (* func)(bool state)){
-  if (!time_synced)
-    return ;
-
-  if (t_off[0] <= t_on[0]) {
-      if (hour() >= t_on[0] && minute() >= t_on[1])
-        func(ON);
-      else
-        func(OFF);
-  }
-  else {
-      if (hour() >= t_on[0] && hour() <= t_off[0]) {
-        if (minute() >= t_on[1] && minute() < t_off[1])
-          func(ON);
-        else
-          func(OFF);
-
-      } else {
-        func(OFF);
-      }
-    }
 }
 
 void waterOn(){
