@@ -660,16 +660,28 @@ void checkAction(int (& t_on)[2], int (& t_off)[2], void (* func)(bool state)){
   if (!time_synced)
     return ;
 
-  // ON < OFF
+  // ON < OFF (Hours)
   if (t_on[0] <= t_off[0]){
     if (hour() >= t_on[0] && hour() <= t_off[0]){
-      if (minute() >= t_on[1] && minute() < t_off[1]){
-        func(ON);
+      // ON < OFF (MINUTES)
+      if (t_on[1] <= t_off[1]){
+        if (minute() >= t_on[1] && minute() < t_off[1]){
+          func(ON);
+        } else {
+          func(OFF);
+        }
+      // ON > OFF (MINUTES)
       } else {
-        func(OFF);
+        if (minute() >= t_on[1] && minute() > t_off[1]){
+          func(ON);
+        } else {
+          func(OFF);
+        }
       }
+    } else {
+      func(OFF);
     }
-  // ON > OFF
+  // ON > OFF (Hours)
   } else {
     if (hour() >= t_on[0] && hour() >= t_off[0]){
       if (minute() >= t_on[1] && minute() > t_off[1]){
