@@ -343,7 +343,7 @@ void setup()
   #endif
 
   // Read or create system settings
-  DynamicJsonBuffer json_buffer;
+  StaticJsonBuffer<672> json_buffer;
   if (settingFileExists()){
     String json;
     json = readSettings();
@@ -560,7 +560,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
   }
 
   if (modified){
-    DynamicJsonBuffer json_buffer;
+    StaticJsonBuffer<672> json_buffer;
     JsonObject& root = json_buffer.createObject();
     updateSettings(root);
     writeSettings(root);
@@ -707,7 +707,7 @@ void toggleLights(bool state){
       if (light_override){
         // Restore settings
         String json = readSettings();
-        DynamicJsonBuffer json_buffer;
+        StaticJsonBuffer<672> json_buffer;
         JsonObject& root = json_buffer.parseObject(json.c_str());
 
         light_time_off[0] = root["lights"]["off"][0];
@@ -725,7 +725,7 @@ void toggleLights(bool state){
       if (light_override){
         // Restore settings
         String json = readSettings();
-        DynamicJsonBuffer json_buffer;
+        StaticJsonBuffer<672> json_buffer;
         JsonObject& root = json_buffer.parseObject(json.c_str());
 
         light_time_on[0] = root["lights"]["on"][0];
@@ -747,7 +747,7 @@ void toggleAir(bool state){
       if (air_override){
         // Restore settings
         String json = readSettings();
-        DynamicJsonBuffer json_buffer;
+        StaticJsonBuffer<672> json_buffer;
         JsonObject& root = json_buffer.parseObject(json.c_str());
 
         air_time_off[0] = root["air"]["off"][0];
@@ -765,7 +765,7 @@ void toggleAir(bool state){
       if (air_override){
         // Restore settings
         String json = readSettings();
-        DynamicJsonBuffer json_buffer;
+        StaticJsonBuffer<672> json_buffer;
         JsonObject& root = json_buffer.parseObject(json.c_str());
 
         air_time_on[0] = root["air"]["on"][0];
