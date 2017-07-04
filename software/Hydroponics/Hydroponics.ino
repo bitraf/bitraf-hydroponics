@@ -655,45 +655,42 @@ void rotaryChange(duration_type duration_type, uint16_t duration) {
   Serial.println(")");
 }
 
-// check if it's time to toggle passed function
-void checkAction(int (& t_on)[2], int (& t_off)[2], void (* func)(bool state)){
+int timeToMin(int (& t)[2]){
+  int hours_as_minutes = t[0] * 60;
+
+  return t[1] + hours_as_minutes;
+}
+
+
+// Check if we should run passed function
+void checkAction(int (& in)[2], int (& out)[2], void (* func)(bool state)){
   if (!time_synced)
     return ;
 
-  // ON < OFF (Hours)
-  if (t_on[0] <= t_off[0]){
-    if (hour() >= t_on[0] && hour() <= t_off[0]){
-      // ON < OFF (MINUTES)
-      if (t_on[1] <= t_off[1]){
-        if (minute() >= t_on[1] && minute() < t_off[1]){
-          func(ON);
-        } else {
-          func(OFF);
-        }
-      // ON > OFF (MINUTES)
-      } else {
-        if (minute() >= t_on[1] && minute() > t_off[1]){
-          func(ON);
-        } else {
-          func(OFF);
-        }
-      }
-    } else {
+  int on = timeToMin(in);
+  int off = timeToMin(out);
+  int n[2] = {hour(), minute()};
+  int now = timeToMin(n);
+
+  if (on < off)
+    if (now >= on  && now < off)
+      func(ON);
+    else
       func(OFF);
-    }
-  // ON > OFF (Hours)
-  } else {
-    if (hour() >= t_on[0] && hour() >= t_off[0]){
-      if (minute() >= t_on[1] && minute() > t_off[1]){
+
+  if (on > off)
+    if (off == 0)
+      if (now >= on)
         func(ON);
-      } else {
+      else
         func(OFF);
-      }
-    } else {
-      func(OFF);
-    }
-  }
+    else
+      if (now >= on || now < off)
+        func(ON);
+      else
+        func(OFF);
 }
+
 
 // switch lights
 void toggleLights(bool state){
