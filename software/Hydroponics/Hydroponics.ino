@@ -481,7 +481,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       light_time_on[1] = minute();
       toggleLights(ON);
       light_override = true;
-    } else if (parseTime(value, light_time_on[0], light_time_on[1])) {
+    } else if (parseTime(value, light_time_on)) {
       Serial.print("Setting new light on time: ");
       Serial.println(value);
       modified = true;
@@ -493,7 +493,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       light_time_off[1] = minute();
       toggleLights(OFF);
       light_override = true;
-    } else if (parseTime(value, light_time_off[0], light_time_off[1])) {
+    } else if (parseTime(value, light_time_off)) {
       Serial.print("Setting new light off time: ");
       Serial.println(value);
       modified = true;
@@ -505,7 +505,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       air_time_on[1] = minute();
       toggleAir(ON);
       air_override = true;
-    } else if (parseTime(value, air_time_on[0], air_time_on[1])) {
+    } else if (parseTime(value, air_time_on)) {
       Serial.print("Setting new air on time: ");
       Serial.println(value);
       modified = true;
@@ -517,7 +517,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
       air_time_off[1] = minute();
       toggleAir(OFF);
       air_override = true;
-    } else if (parseTime(value, air_time_off[0], air_time_off[1])) {
+    } else if (parseTime(value, air_time_off)) {
       Serial.print("Setting new air off time: ");
       Serial.println(value);
       modified = true;
@@ -545,7 +545,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
         waterOn();
 
       // Water NOW or for value amount of time
-    } else if (parseTime(value, water_cycles[cycle_num][0], water_cycles[cycle_num][1])){
+    } else if (parseTime(value, water_cycles[cycle_num])){
       Serial.print("Setting new time for water cycle number ");
       Serial.print(cycle_num);
       Serial.print(": ");
@@ -567,7 +567,7 @@ void onMqttMsg(char* _topic, byte* payload, unsigned int length) {
   }
 }
 
-bool parseTime(const String &value, int &hour, int &minute){
+bool parseTime(const String &value, int (& t)[2]){
   uint colon = value.indexOf(":");
 
   if (colon == -1) {
@@ -595,8 +595,9 @@ bool parseTime(const String &value, int &hour, int &minute){
     }
 
     // Success!
-    hour = hour_int;
-    minute = minute_int;
+    t[0] = hour_int;
+    t[1] = minute_int;
+
     return true;
   }
 
@@ -604,56 +605,6 @@ bool parseTime(const String &value, int &hour, int &minute){
   return false;
 }
 
-void digitalClockDisplay(){
-  // digital clock display of the time
-  Serial.print(hour());
-  printDigits(minute());
-  printDigits(second());
-  Serial.print(" ");
-  Serial.print(day());
-  Serial.print(".");
-  Serial.print(month());
-  Serial.print(".");
-  Serial.print(year());
-  Serial.println();
-}
-
-void printDigits(int digits){
-  // utility for digital clock display: prints preceding colon and leading 0
-  Serial.print(":");
-  if(digits < 10)
-    Serial.print('0');
-  Serial.print(digits);
-}
-
-void rotaryMove(bool dir) {
-  static int count = 0;
-  Serial.println(dir ? ">>>" : "<<<");
-  lcd.setCursor(0, 0);
-  lcd.print(dir ? ">>>" : "<<<");
-  lcd.setCursor(0, 1);
-  count += dir ? 1 : -1;
-  lcd.print(count);
-}
-
-void rotaryChange(duration_type duration_type, uint16_t duration) {
-
-  static const char* pressText[] = {
-    "really quick press!",
-    "short press",
-    "normal press",
-    "long press",
-    "very looooooooong press"
-  };
-
-  Serial.print("released selecting: ");
-  Serial.print(rotary.currentValue(), DEC);
-  Serial.print(" (after ");
-  Serial.print(duration);
-  Serial.print(" ms = ");
-  Serial.print(pressText[static_cast<int>(duration_type)]);
-  Serial.println(")");
-}
 
 int timeToMin(int (& t)[2]){
   int hours_as_minutes = t[0] * 60;
@@ -812,4 +763,56 @@ void checkWateringStatus(){
     waterOff();
     Serial.println("Water off, all OK");
   }
+}
+
+
+void digitalClockDisplay(){
+  // digital clock display of the time
+  Serial.print(hour());
+  printDigits(minute());
+  printDigits(second());
+  Serial.print(" ");
+  Serial.print(day());
+  Serial.print(".");
+  Serial.print(month());
+  Serial.print(".");
+  Serial.print(year());
+  Serial.println();
+}
+
+void printDigits(int digits){
+  // utility for digital clock display: prints preceding colon and leading 0
+  Serial.print(":");
+  if(digits < 10)
+    Serial.print('0');
+  Serial.print(digits);
+}
+
+void rotaryMove(bool dir) {
+  static int count = 0;
+  Serial.println(dir ? ">>>" : "<<<");
+  lcd.setCursor(0, 0);
+  lcd.print(dir ? ">>>" : "<<<");
+  lcd.setCursor(0, 1);
+  count += dir ? 1 : -1;
+  lcd.print(count);
+}
+
+void rotaryChange(duration_type duration_type, uint16_t duration) {
+
+  static const char* pressText[] = {
+    "really quick press!",
+    "short press",
+    "normal press",
+    "long press",
+    "very looooooooong press"
+  };
+
+  Serial.print("released selecting: ");
+  Serial.print(rotary.currentValue(), DEC);
+  Serial.print(" (after ");
+  Serial.print(duration);
+  Serial.print(" ms = ");
+  Serial.print(pressText[static_cast<int>(duration_type)]);
+  Serial.println(")");
 }
