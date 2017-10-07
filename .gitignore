@@ -1,5 +1,7 @@
 *.fcstd?*
+wifipassword.h
+# KiCAD
 *_autosave?*
 *.bak
 *-bak
-wifipassword.h
+*.bck
