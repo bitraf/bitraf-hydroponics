@@ -1,0 +1,15 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP NodeMCU_0.9
+D NodeMCU 0.9
+K nodemcu
+F https://raw.githubusercontent.com/nodemcu/nodemcu-devkit/master/Documents/NODEMCU-DEVKIT-INSTRUCTION-EN.png
+$ENDCMP
+#
+$CMP NodeMCU_1.0
+D NodeMCU 1.0
+K nodemcu
+F https://raw.githubusercontent.com/nodemcu/nodemcu-devkit-v1.0/master/Documents/NODEMCU_DEVKIT_V1.0_PINMAP.png
+$ENDCMP
+#
+#End Doc Library
