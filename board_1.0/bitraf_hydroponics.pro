@@ -1,4 +1,4 @@
-update=to. 12. okt. 2017 kl. 22.22 +0200
+update=to. 19. okt. 2017 kl. 23.36 +0200
 version=1
 last_client=kicad
 [pcbnew]
@@ -37,7 +37,7 @@ SpiceUseNetNumbers=0
 LabSize=60
 [eeschema]
 version=1
-LibDir=../symbols
+LibDir=../symbols;../thirdparty/kicad-ESP8266
 [eeschema/libraries]
 LibName1=power
 LibName2=device
@@ -70,3 +70,5 @@ LibName28=contrib
 LibName29=valves
 LibName30=nodemcu
 LibName31=tps54202
+LibName32=ESP8266
+LibName33=ap2114
