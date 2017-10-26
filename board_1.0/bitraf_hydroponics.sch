@@ -228,7 +228,7 @@ L Conn_01x03 P16
 U 1 1 57E44619
 P 6500 7200
 F 0 "P16" H 6500 7400 50  0000 C CNN
-F 1 "Radio_433" H 6500 7000 50  0000 C CNN
+F 1 "RADIO_433" H 6500 7000 50  0000 C CNN
 F 2 "Socket_Strips:Socket_Strip_Straight_1x03_Pitch2.54mm" H 6500 7200 50  0001 C CNN
 F 3 "" H 6500 7200 50  0001 C CNN
 	1    6500 7200
@@ -387,8 +387,8 @@ L CONN_01X02 P1
 U 1 1 57E46A8E
 P 1200 2350
 F 0 "P1" H 1200 2500 50  0000 C CNN
-F 1 "12V_PWR" V 1300 2350 50  0000 C CNN
-F 2 "Connectors_Terminal_Blocks:TerminalBlock_Pheonix_PT-3.5mm_2pol" H 1200 2350 50  0001 C CNN
+F 1 "12V" V 1300 2350 50  0000 C CNN
+F 2 "Connectors_Phoenix:PhoenixContact_PTSM0,5_4-HV-2,5_SMD" H 1200 2350 50  0001 C CNN
 F 3 "" H 1200 2350 50  0000 C CNN
 	1    1200 2350
 	-1   0    0    1   
@@ -443,7 +443,7 @@ U 1 1 57E49867
 P 9050 5000
 F 0 "R6" V 9130 5000 50  0000 C CNN
 F 1 "R" V 9050 5000 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805" V 8980 5000 50  0001 C CNN
+F 2 "Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 8980 5000 50  0001 C CNN
 F 3 "" H 9050 5000 50  0000 C CNN
 	1    9050 5000
 	1    0    0    -1  
@@ -1448,4 +1448,5 @@ F 3 "http://www.smc-diodes.com/propdf/S1A-S1M%20N0560%20REV.B.pdf" H 10300 1050 
 	1    10300 1050
 	0    1    1    0   
 $EndComp
+Connection ~ 5000 2300
 $EndSCHEMATC

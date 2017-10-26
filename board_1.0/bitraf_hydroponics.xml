@@ -73,8 +73,8 @@
       </fields>
     </comp>
     <comp ref="P1">
-      <value>12V_PWR</value>
-      <footprint>Connectors_Terminal_Blocks:TerminalBlock_Pheonix_PT-3.5mm_2pol</footprint>
+      <value>12V</value>
+      <footprint>Connectors_Phoenix:PhoenixContact_PTSM0,5_4-HV-2,5_SMD</footprint>
     </comp>
     <comp ref="P2">
       <value>SWITCH_1</value>
@@ -133,7 +133,7 @@
       <footprint>Pin_Headers:Pin_Header_Straight_1x06_Pitch2.54mm</footprint>
     </comp>
     <comp ref="P16">
-      <value>Radio_433</value>
+      <value>RADIO_433</value>
       <footprint>Socket_Strips:Socket_Strip_Straight_1x03_Pitch2.54mm</footprint>
     </comp>
     <comp ref="Q1">
@@ -176,7 +176,7 @@
     </comp>
     <comp ref="R6">
       <value>R</value>
-      <footprint>Resistors_SMD:R_0805</footprint>
+      <footprint>Resistors_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal</footprint>
     </comp>
     <comp ref="U1">
       <value>TPS54202</value>
