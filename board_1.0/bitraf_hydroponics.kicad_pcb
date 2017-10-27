@@ -3,9 +3,9 @@
   (general
     (links 101)
     (no_connects 0)
-    (area 99.924999 59.924999 200.075001 110.075001)
+    (area 90 50 210.000001 120.000001)
     (thickness 1.6)
-    (drawings 36)
+    (drawings 38)
     (tracks 286)
     (zones 0)
     (modules 44)
@@ -33,7 +33,7 @@
     (46 B.CrtYd user)
     (47 F.CrtYd user)
     (48 B.Fab user)
-    (49 F.Fab user hide)
+    (49 F.Fab user)
   )
 
   (setup
@@ -389,7 +389,7 @@
     )
   )
 
-  (module Mounting_Holes:MountingHole_3.2mm_M3 (layer F.Cu) (tedit 59F1722E) (tstamp 59F17238)
+  (module Mounting_Holes:MountingHole_3.2mm_M3 (layer F.Cu) (tedit 59F2F040) (tstamp 59F17238)
     (at 104 64)
     (descr "Mounting Hole 3.2mm, no annular, M3")
     (tags "mounting hole 3.2mm no annular m3")
@@ -397,7 +397,7 @@
     (fp_text reference REF** (at 0 -4.2) (layer F.SilkS) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value MountingHole_3.2mm_M3 (at 0 4.2) (layer F.Fab)
+    (fp_text value MountingHole_3.2mm_M3 (at 0 4.2) (layer F.Fab) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_text user %R (at 0.3 0) (layer F.Fab)
@@ -408,7 +408,7 @@
     (pad 1 np_thru_hole circle (at 0 0) (size 3.2 3.2) (drill 3.2) (layers *.Cu *.Mask))
   )
 
-  (module Mounting_Holes:MountingHole_3.2mm_M3 (layer F.Cu) (tedit 59F1722E) (tstamp 59F17234)
+  (module Mounting_Holes:MountingHole_3.2mm_M3 (layer F.Cu) (tedit 59F2F039) (tstamp 59F17234)
     (at 196 64)
     (descr "Mounting Hole 3.2mm, no annular, M3")
     (tags "mounting hole 3.2mm no annular m3")
@@ -416,7 +416,7 @@
     (fp_text reference REF** (at 0 -4.2) (layer F.SilkS) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value MountingHole_3.2mm_M3 (at 0 4.2) (layer F.Fab)
+    (fp_text value MountingHole_3.2mm_M3 (at 0 4.2) (layer F.Fab) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_text user %R (at 0.3 0) (layer F.Fab)
@@ -427,7 +427,7 @@
     (pad 1 np_thru_hole circle (at 0 0) (size 3.2 3.2) (drill 3.2) (layers *.Cu *.Mask))
   )
 
-  (module Mounting_Holes:MountingHole_3.2mm_M3 (layer F.Cu) (tedit 59F1722E) (tstamp 59F17230)
+  (module Mounting_Holes:MountingHole_3.2mm_M3 (layer F.Cu) (tedit 59F2F03B) (tstamp 59F17230)
     (at 196 106)
     (descr "Mounting Hole 3.2mm, no annular, M3")
     (tags "mounting hole 3.2mm no annular m3")
@@ -435,7 +435,7 @@
     (fp_text reference REF** (at 0 -4.2) (layer F.SilkS) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value MountingHole_3.2mm_M3 (at 0 4.2) (layer F.Fab)
+    (fp_text value MountingHole_3.2mm_M3 (at 0 4.2) (layer F.Fab) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_text user %R (at 0.3 0) (layer F.Fab)
@@ -1651,7 +1651,7 @@
     )
   )
 
-  (module Mounting_Holes:MountingHole_3.2mm_M3 (layer F.Cu) (tedit 59F1722E) (tstamp 59F17224)
+  (module Mounting_Holes:MountingHole_3.2mm_M3 (layer F.Cu) (tedit 59F2F03D) (tstamp 59F17224)
     (at 104 106)
     (descr "Mounting Hole 3.2mm, no annular, M3")
     (tags "mounting hole 3.2mm no annular m3")
@@ -1659,7 +1659,7 @@
     (fp_text reference REF** (at 0 -4.2) (layer F.SilkS) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value MountingHole_3.2mm_M3 (at 0 4.2) (layer F.Fab)
+    (fp_text value MountingHole_3.2mm_M3 (at 0 4.2) (layer F.Fab) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_text user %R (at 0.3 0) (layer F.Fab)
@@ -1933,6 +1933,30 @@
     )
   )
 
+  (dimension 50 (width 0.3) (layer F.Fab)
+    (gr_text "50,000 mm" (at 78.65 85 90) (layer F.Fab)
+      (effects (font (size 1.5 1.5) (thickness 0.3)))
+    )
+    (feature1 (pts (xy 100 60) (xy 77.3 60)))
+    (feature2 (pts (xy 100 110) (xy 77.3 110)))
+    (crossbar (pts (xy 80 110) (xy 80 60)))
+    (arrow1a (pts (xy 80 60) (xy 80.586421 61.126504)))
+    (arrow1b (pts (xy 80 60) (xy 79.413579 61.126504)))
+    (arrow2a (pts (xy 80 110) (xy 80.586421 108.873496)))
+    (arrow2b (pts (xy 80 110) (xy 79.413579 108.873496)))
+  )
+  (dimension 100 (width 0.3) (layer F.Fab)
+    (gr_text "100,000 mm" (at 150 38.65) (layer F.Fab)
+      (effects (font (size 1.5 1.5) (thickness 0.3)))
+    )
+    (feature1 (pts (xy 200 60) (xy 200 37.3)))
+    (feature2 (pts (xy 100 60) (xy 100 37.3)))
+    (crossbar (pts (xy 100 40) (xy 200 40)))
+    (arrow1a (pts (xy 200 40) (xy 198.873496 40.586421)))
+    (arrow1b (pts (xy 200 40) (xy 198.873496 39.413579)))
+    (arrow2a (pts (xy 100 40) (xy 101.126504 40.586421)))
+    (arrow2b (pts (xy 100 40) (xy 101.126504 39.413579)))
+  )
   (gr_text 4 (at 182.88 73.75) (layer F.SilkS)
     (effects (font (size 1.5 1.5) (thickness 0.3)))
   )
