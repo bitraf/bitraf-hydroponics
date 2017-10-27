@@ -1,4 +1,4 @@
-update=to. 19. okt. 2017 kl. 23.36 +0200
+update=fr. 27. okt. 2017 kl. 07.57 +0200
 version=1
 last_client=kicad
 [pcbnew]
@@ -68,7 +68,6 @@ LibName26=opto
 LibName27=atmel
 LibName28=contrib
 LibName29=valves
-LibName30=nodemcu
-LibName31=tps54202
-LibName32=ESP8266
-LibName33=ap2114
+LibName30=tps54202
+LibName31=ESP8266
+LibName32=ap2114
