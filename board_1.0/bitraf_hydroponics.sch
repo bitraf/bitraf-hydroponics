@@ -30,6 +30,7 @@ LIBS:contrib
 LIBS:valves
 LIBS:nodemcu
 LIBS:tps54202
+LIBS:ESP8266
 LIBS:ap2114
 LIBS:bitraf_hydroponics-cache
 EELAYER 25 0
@@ -382,14 +383,14 @@ F 4 "C5" H 5800 2550 60  0001 C CNN "ta_ref"
 	1    0    0    -1  
 $EndComp
 $Comp
-L CONN_01X02 P1
+L Conn_01x02 P1
 U 1 1 57E46A8E
-P 1200 2350
+P 1200 2400
 F 0 "P1" H 1200 2500 50  0000 C CNN
-F 1 "12V" V 1300 2350 50  0000 C CNN
-F 2 "Connectors_Phoenix:PhoenixContact_PTSM0,5_4-HV-2,5_SMD" H 1200 2350 50  0001 C CNN
-F 3 "" H 1200 2350 50  0000 C CNN
-	1    1200 2350
+F 1 "12V" H 1200 2200 50  0000 C CNN
+F 2 "Connectors_Phoenix:PhoenixContact_PTSM0,5_4-HV-2,5_SMD" H 1200 2400 50  0001 C CNN
+F 3 "" H 1200 2400 50  0001 C CNN
+	1    1200 2400
 	-1   0    0    1   
 $EndComp
 $Comp
