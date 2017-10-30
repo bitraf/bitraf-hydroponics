@@ -1,0 +1,9 @@
+kicad,common
+Capacitors_SMD:C_0402_NoSilk,0402
+Capacitors_SMD:C_0402,0402
+Resistors_SMD:R_0402,0402
+Resistors_SMD:R_0402_NoSilk,0402
+Capacitors_SMD:C_0603_NoSilk,0603
+Capacitors_SMD:C_0603,0603
+Capacitors_SMD:C_0805,0805
+Capacitors_SMD:C_0805_NoSilk,0805
