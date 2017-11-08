@@ -1,3 +1,21 @@
+#include <Wire.h>  // This library is already built in to the Arduino IDE
+#include <ArduinoOTA.h>
+#include <WiFiClient.h>
+#include <FS.h>
+#include <stdio.h>
+
+// Libraries that you have to install via Include Library > Manage Library
+#include <PubSubClient.h>
+#include "LiquidCrystal_I2C.h"
+#include <TimeLib.h>      // "Time" library
+#include <TimeAlarms.h>
+#include <NtpClientLib.h>
+#include <ArduinoJson.h>
+
+#include "RotaryEncoder.h"
+#include "tx433_Nexa.h"
+#include "Ota.h"
+
 // begin wifipassword.h example
 //
 // #define WIFI_SSID "myrouter"
@@ -8,23 +26,7 @@
 // #define FORMAT_SPIFFS false
 //
 // End wifipassword.h example
-
-
-#include <Wire.h>  // This library is already built in to the Arduino IDE
-#include <ArduinoOTA.h>
-#include <WiFiClient.h>
-#include "LiquidCrystal_I2C.h" //This library you can add via Include Library > Manage Library >
-#include "RotaryEncoder.h"
-#include <PubSubClient.h>
-#include "Ota.h"
-#include <TimeLib.h>
-#include <TimeAlarms.h>
-#include <NtpClientLib.h>
-#include "tx433_Nexa.h" // Nexa headers
 #include "wifipassword.h" //This is not commited to git so provide your own like example above.
-#include <ArduinoJson.h>
-#include <FS.h>
-#include <stdio.h>
 
 // Nexa ID
 String tx_nexa = "1010101010101010101010101010101010101010101010101010";
