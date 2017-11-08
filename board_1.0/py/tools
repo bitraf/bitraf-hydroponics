@@ -216,6 +216,41 @@ class CheckHighestComponent(Check):
             notes.append(self.info(message="Highest component {} is {} mm".format(ref, height)))
         return notes
 
+class CheckComponentValue(Check):
+    def __init__(self, repo):
+        super().__init__("component-value")
+        self.repo = repo
+
+    def run(self, df):
+        notes = []
+
+        if not hasattr(df, 'mpn'):
+            notes.append(self.info(message="Skipping, missing mpn field."))
+            return notes
+
+        f = (df.mpn.isnull() | (df.mpn == "-")) & (df.value != "NA")
+
+        for (ref, row) in df[~f].iterrows():
+            mpn = row.mpn
+
+            part = self.repo.find_by_mpn(mpn)
+
+            if not part:
+                # Ignored, other checks should warn about missing parts from database
+                continue
+
+            # Resistance, Capacitance, Inductance
+            for at_id in [2085, 2049, 2087]:
+                part_value = part.attribute_by_id(at_id)
+                if part_value:
+                    part_value = ee.EeVal(part_value.value)
+                    schema_value = ee.EeVal(row.value)
+                    if part_value.value != schema_value.value:
+                        notes.append(self.error(ref=ref, message="Inconsistent values: from part={}, from schema={}".format(part_value, schema_value)))
+
+        return notes
+
+
 def ee_val(s):
     try:
         return ee.EeVal(s)
@@ -240,6 +275,7 @@ def cmd_run_checks(**kwargs):
     notes.extend(CheckMismatchedFootprint(digikey_repo).run(sch_df.copy()))
     notes.extend(CheckMissingPartNumber().run(sch_df.copy()))
     notes.extend(CheckHighestComponent(digikey_repo).run(sch_df.copy()))
+    notes.extend(CheckComponentValue(digikey_repo).run(sch_df.copy()))
 
     errors = [r for r in notes if r.severity == Severity.ERROR]
     warnings = [r for r in notes if r.severity == Severity.WARNING]
@@ -254,11 +290,11 @@ def cmd_run_checks(**kwargs):
             print("  {}{}".format(n.kind, ": {}".format(n.message) if n.message else ""))
         print("")
 
-    ref_notes = sorted((n for n in notes if n.ref))
-    for ref, notes in groupby(ref_notes, lambda n: n.ref):
+    notes_sorted_by_ref = sorted((n for n in notes if n.ref), key=lambda n: n.ref)
+    for ref, notes in groupby(notes_sorted_by_ref, lambda n: n.ref):
         notes = list(notes)
-        if hasattr(sch_df, "mpn"):
-            mpn = sch_df.loc[ref].mpn
+        mpn = sch_df.loc[ref].mpn if hasattr(sch_df, "mpn") else None
+        mpn = mpn if isinstance(mpn, str) else None
 
         if mpn:
             print("Ref: {}, MPN: {}".format(ref, mpn))
@@ -298,19 +334,32 @@ def cmd_digikey_bom(**kwargs):
         q = q & (sch_df.assembly != "footprint only")
 
     products = digikey_repo.to_pandas()
+    print("PRODUCTS")
+    print(products[["Digi-Key"]].to_string())
     bom = sch_df[q]
-    bom = pd.merge(bom, products, how='left', left_on='mpn', right_index=True)
+#    bom = pd.merge(bom, products, how='left', left_on='mpn', right_index=True)
 
-    digikey = pd.merge(
+    bom = pd.merge(
         sch_df[["mpn", "value"]],
         products[["URL", "Digi-Key"]],
-        left_on='mpn', right_index=True).\
+        how='left', left_on='mpn', right_index=True)
+    print("merged len bom={}".format(len(bom)))
+    print("BOM")
+    print(bom.to_string())
+    digikey = bom.\
         reset_index().\
-        groupby(['Digi-Key']).agg({'ref': [grp, cnt]})
+        groupby(['Digi-Key']).agg({'ref': [grp, cnt], 'mpn': [grp]})
+
+    print("DIGIKEY")
+    print(digikey)
 
     digikey.columns = ["_".join(col).strip() for col in sorted(digikey.columns.values)]
-    digikey = digikey[["ref_grp", "ref_cnt"]].reset_index().\
-        rename(columns={"Digi-Key": "Digi-Key Part Number", "ref_cnt": "Customer Reference", "ref_grp": "Quantity"})
+    digikey = digikey[["ref_grp", "ref_cnt", "mpn_grp"]].reset_index().\
+        rename(columns={
+                "Digi-Key": "Digi-Key Part Number",
+                "ref_cnt": "Customer Reference",
+                "ref_grp": "Quantity",
+                "mpn_grp": "MPN"})
 
     if args.quantity:
         q = int(args.quantity)

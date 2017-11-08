@@ -44,13 +44,15 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_LIST_DIR}/${PRJ}.xml"
     DEPENDS "${PIP_COOKIE}"
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 
+file(GLOB CSVS RELATIVE ${CMAKE_CURRENT_LIST_DIR} py/*.csv)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_LIST_DIR}/${PRJ}-checks.md"
     COMMAND "${PY}" "${TOOLS}" --cmd run-checks
         --sch "${CMAKE_CURRENT_LIST_DIR}/${PRJ}.sch"
         --digikey-repo "${CMAKE_CURRENT_LIST_DIR}/digikey"
         > "${CMAKE_CURRENT_LIST_DIR}/${PRJ}-checks.md"
     MAIN_DEPENDENCY "${CMAKE_CURRENT_LIST_DIR}/${PRJ}.sch"
-    DEPENDS "${PIP_COOKIE}" "${PY}" "${TOOLS}" "digikey-download-facts.cookie")
+    DEPENDS "${PIP_COOKIE}" "${PY}" "${TOOLS}"
+      "digikey-download-facts.cookie" ${CSVS})
 
 add_custom_command(OUTPUT "digikey-download-facts.cookie"
     COMMENT "Downloading facts from Digi-Key"
@@ -112,13 +114,13 @@ add_custom_command(OUTPUT production/${PRJ}-digikey-bom.csv
     MAIN_DEPENDENCY "${CMAKE_CURRENT_LIST_DIR}/${PRJ}.sch"
     DEPENDS "${PIP_COOKIE}" "${PY}" "${TOOLS}" "digikey-download-facts.cookie")
 
-add_custom_command(OUTPUT production/${PRJ}-digikey-bom-20.csv
+add_custom_command(OUTPUT production/${PRJ}-digikey-bom-10.csv
     COMMAND ${CMAKE_COMMAND} -E make_directory production
     COMMAND "${PY}" "${TOOLS}" --cmd digikey-bom
       --sch "${CMAKE_CURRENT_LIST_DIR}/${PRJ}.sch"
       --digikey-repo "${CMAKE_CURRENT_LIST_DIR}/digikey"
-      --quantity 20
-      > production/${PRJ}-digikey-bom-20.csv
+      --quantity 10
+      > production/${PRJ}-digikey-bom-10.csv
     MAIN_DEPENDENCY "${CMAKE_CURRENT_LIST_DIR}/${PRJ}.sch"
     DEPENDS "${PIP_COOKIE}" "${PY}" "${TOOLS}" "digikey-download-facts.cookie")
 
@@ -131,7 +133,7 @@ add_custom_target(${PRJ}-production ALL DEPENDS
 		${PRJ}-gerber
     production/${PRJ}-eurocircuits-bom.csv
     production/${PRJ}-digikey-bom.csv
-    production/${PRJ}-digikey-bom-20.csv
+    production/${PRJ}-digikey-bom-10.csv
     ${extra_deps}
 )
 add_custom_target(${PRJ}-bom ALL DEPENDS "${PRJ}.xml")
