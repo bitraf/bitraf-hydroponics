@@ -55,17 +55,19 @@ static const bool ON = true;
 static const bool OFF = false;
 
 // RF transmit
-const int RF_DATA = D3;
+const int RF_DATA = D4;
 Tx433_Nexa Nexa(RF_DATA, tx_nexa, ch_nexa);
 
-// MOSFET 3
-const int MOSFET_3 = D4;
+// Switches
+const int SWITCH_1 = D0;
+const int SWITCH_2 = D5;
+const int SWITCH_3 = D6;
 
 // Water PIN
-const int WATER_PUMP_PIN = D6;
+const int WATER_PUMP_PIN = SWITCH_1;
 
 // Air pump PIN
-const int AIR_PUMP_PIN = D5;
+const int AIR_PUMP_PIN = SWITCH_2;
 
 // Track last water fill
 unsigned long last_fill_start;
@@ -90,10 +92,10 @@ WiFiClient wifi_client;
 // LCD setup
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
-const int PIN_ENC1 = D8;
-const int PIN_ENC2 = D9;
-const int PIN_BTN = D7;
-using decoder_t = RotaryEncoderDecoder<PIN_ENC1, PIN_ENC2, PIN_BTN, uint16_t>;
+const int ROT_0 = D3;
+const int ROT_1 = D2;
+const int ROT_SW = D1;
+using decoder_t = RotaryEncoderDecoder<ROT_0, ROT_1, ROT_SW, uint16_t>;
 
 void rotaryChange(duration_type duration_type, uint16_t click_length);
 void rotaryMove(bool dir);
@@ -314,8 +316,8 @@ void setup()
   digitalWrite(WATER_PUMP_PIN, LOW);
   pinMode(AIR_PUMP_PIN, OUTPUT);
   digitalWrite(AIR_PUMP_PIN, LOW);
-  pinMode(MOSFET_3, OUTPUT);
-  digitalWrite(MOSFET_3, LOW);
+  pinMode(SWITCH_3, OUTPUT);
+  digitalWrite(SWITCH_3, LOW);
 
   Serial.begin(115200);
   Serial.println();
@@ -330,8 +332,8 @@ void setup()
   lcd.print("Line 2----------"); // Start Print Test to Line 2
 
   rotary.setup();
-  attachInterrupt(digitalPinToInterrupt(PIN_ENC1), intrEncChange1, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_ENC2), intrEncChange2, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ROT_0), intrEncChange1, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ROT_1), intrEncChange2, CHANGE);
 
   setupOta();
 
