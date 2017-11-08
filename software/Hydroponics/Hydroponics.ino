@@ -118,8 +118,7 @@ const char *mqtt_client_id = MQTT_CLIENT_ID;
 PubSubClient mqtt_client(wifi_client);
 
 // MQTT topics
-const int num_topics = 9;
-const char *mqtt_topics[num_topics] = {
+const char *mqtt_topics[] = {
   "public/" DEVICE_ID "/lights-on",
   "public/" DEVICE_ID "/lights-off",
   "public/" DEVICE_ID "/light/command",
@@ -128,7 +127,8 @@ const char *mqtt_topics[num_topics] = {
   "public/" DEVICE_ID "/water/watercycle/+",
   "public/" DEVICE_ID "/water/filltime",
   "public/" DEVICE_ID "/status/+",  //lights-on, lights-off, air-on, air-off, filltime, water[0-3]
-  "public/" DEVICE_ID "/factory-reset"
+  "public/" DEVICE_ID "/factory-reset",
+  NULL
 };
 
 // MQTT Setup
@@ -140,9 +140,11 @@ void startMQTT(){
   Serial.println(mqtt_client.state());
 
   // loop through topics and subscribe
-  for (int i = 0; i < num_topics; i++){
+  int i = 0;
+  while (mqtt_topics[i] != NULL){
     mqtt_client.subscribe(mqtt_topics[i], 1);
     mqtt_client.loop();
+    i++;
   }
 }
 
