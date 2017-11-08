@@ -12,6 +12,9 @@
 #include <NtpClientLib.h>
 #include <ArduinoJson.h>
 
+// Custom headers
+#include "wifipassword.h" //This is not commited to git so provide your own like example below.
+#include "board_config.h"
 #include "RotaryEncoder.h"
 #include "tx433_Nexa.h"
 #include "Ota.h"
@@ -21,12 +24,7 @@
 // #define WIFI_SSID "myrouter"
 // #define WIFI_PWD "myrouterspassword"
 //
-// #define DEVICE_ID "hydroponics-1"
-// #define MQTT_CLIENT_ID DEVICE_ID
-// #define FORMAT_SPIFFS false
-//
 // End wifipassword.h example
-#include "wifipassword.h" //This is not commited to git so provide your own like example above.
 
 // Nexa ID
 String tx_nexa = "1010101010101010101010101010101010101010101010101010";
@@ -55,13 +53,7 @@ static const bool ON = true;
 static const bool OFF = false;
 
 // RF transmit
-const int RF_DATA = D4;
 Tx433_Nexa Nexa(RF_DATA, tx_nexa, ch_nexa);
-
-// Switches
-const int SWITCH_1 = D0;
-const int SWITCH_2 = D5;
-const int SWITCH_3 = D6;
 
 // Water PIN
 const int WATER_PUMP_PIN = SWITCH_1;
@@ -92,9 +84,7 @@ WiFiClient wifi_client;
 // LCD setup
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
-const int ROT_0 = D3;
-const int ROT_1 = D2;
-const int ROT_SW = D1;
+// Rotary encoder setup
 using decoder_t = RotaryEncoderDecoder<ROT_0, ROT_1, ROT_SW, uint16_t>;
 
 void rotaryChange(duration_type duration_type, uint16_t click_length);
@@ -111,8 +101,8 @@ void intrEncChange2() {
 }
 
 // MQTT client
-const char *mqtt_address = "mqtt.bitraf.no";
-const int mqtt_port = 1883;
+const char *mqtt_address = MQTT_ADDRESS;
+const int mqtt_port = MQTT_PORT;
 const char *mqtt_client_id = MQTT_CLIENT_ID;
 
 PubSubClient mqtt_client(wifi_client);
