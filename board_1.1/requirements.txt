@@ -1,0 +1,2 @@
+# https://trygvis.io/git/2017/07/ee-python.git@<hash>
+-e git+https://trygvis.io/git/2017/07/ee-python.git/#egg=ee
