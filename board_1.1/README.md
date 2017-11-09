@@ -1,6 +1,9 @@
 TODO:
 * Rearrange MOSFETs so they work as expected
 
+QUESTIONS:
+* Do we need the exra pins going to GND on rotary encoder and programing headers if we go for the jumper solution?
+
 FEATURES:
 * Fuse for power ports?
 
