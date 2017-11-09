@@ -29,6 +29,7 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:tps54202
+LIBS:ESP8266
 LIBS:ap2114
 LIBS:bitraf_hydroponics-cache
 EELAYER 25 0
@@ -604,7 +605,7 @@ F 3 "" H 10500 3300 50  0000 C CNN
 $EndComp
 Text Label 9900 3600 0    60   ~ 0
 SDA
-Text Label 3250 4800 0    60   ~ 0
+Text Label 3300 4800 0    60   ~ 0
 LDR
 Text Label 6700 1600 0    60   ~ 0
 SWITCH_1
@@ -635,7 +636,7 @@ Text Label 6300 5000 2    60   ~ 0
 ROT_1
 Text Label 6300 5100 2    60   ~ 0
 ROT_0
-Text Label 3250 5300 0    60   ~ 0
+Text Label 3300 5300 0    60   ~ 0
 BUZZ
 Text Label 7200 4400 0    60   ~ 0
 BUZZ
@@ -804,299 +805,16 @@ Text Notes 6650 4250 0    60   ~ 12
 Buzzer
 Text Notes 8250 4450 0    60   ~ 12
 Light sensor
-Text Label 3250 5000 0    60   ~ 0
+Text Label 3300 5000 0    60   ~ 0
 SWITCH_1
-Text Label 3250 5100 0    60   ~ 0
+Text Label 3300 5100 0    60   ~ 0
 SWITCH_2
-Text Label 3250 5200 0    60   ~ 0
+Text Label 3300 5200 0    60   ~ 0
 SWITCH_3
 Text Notes 6650 2950 0    60   ~ 12
 LCD Display
 Text Notes 5550 6650 0    60   ~ 12
 433 MHz radio
-Text Notes 6700 2700 0    60   ~ 0
-Flyback diodes are "fast rectifier diodes" for inductive loads. DC Reverse Vr(max) is 1000 V,\nIo is 1 A. The MOSFETs have Vdss = 20 V, Rds(on) = 26 mΩ @ 3.3 V, Id = 6.4 A.\n
-Text Notes 6650 600  0    60   ~ 12
-Power switches
-Text Notes 600  3900 0    60   ~ 0
-Design is based on "8.2 Typical Application" from the data sheet.\nInput power is 12 V nominal, but the design supports 8-28 V inputs.\nOutput is 5V, 2A.\nEN has internal pull up.
-NoConn ~ 2400 2500
-Text Label 4650 6350 1    60   ~ 0
-SPI_MOSI
-Text Label 4550 6350 1    60   ~ 0
-SPI_CS
-Text Label 4950 6350 1    60   ~ 0
-SPI_MISO
-Text Label 5050 6350 1    60   ~ 0
-SPI_SCL
-$Comp
-L Conn_01x06 P15
-U 1 1 59E13B2D
-P 5100 7100
-F 0 "P15" H 5100 7400 50  0000 C CNN
-F 1 "SPI" H 5100 6700 50  0000 C CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x06_Pitch2.54mm" H 5100 7100 50  0001 C CNN
-F 3 "" H 5100 7100 50  0001 C CNN
-F 4 "826926-6" H 5100 7100 60  0001 C CNN "mpn"
-	1    5100 7100
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR030
-U 1 1 59E13DC2
-P 4800 7500
-F 0 "#PWR030" H 4800 7250 50  0001 C CNN
-F 1 "GND" H 4800 7350 50  0000 C CNN
-F 2 "" H 4800 7500 50  0000 C CNN
-F 3 "" H 4800 7500 50  0000 C CNN
-	1    4800 7500
-	1    0    0    -1  
-$EndComp
-$Comp
-L +5V #PWR031
-U 1 1 59E13E54
-P 4800 6800
-F 0 "#PWR031" H 4800 6650 50  0001 C CNN
-F 1 "+5V" H 4800 6940 50  0000 C CNN
-F 2 "" H 4800 6800 50  0000 C CNN
-F 3 "" H 4800 6800 50  0000 C CNN
-	1    4800 6800
-	1    0    0    -1  
-$EndComp
-Text Label 4000 7200 0    60   ~ 0
-SPI_MOSI
-Text Label 4000 7000 0    60   ~ 0
-SPI_CS
-Text Label 4000 7300 0    60   ~ 0
-SPI_MISO
-Text Label 4000 7100 0    60   ~ 0
-SPI_SCL
-Text Notes 3850 6650 0    60   ~ 12
-SPI
-$Comp
-L R R5
-U 1 1 59E184EC
-P 5000 3050
-F 0 "R5" V 5080 3050 50  0000 C CNN
-F 1 "13.3k" V 5000 3050 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805" V 4930 3050 50  0001 C CNN
-F 3 "" H 5000 3050 50  0000 C CNN
-F 4 "R3" V 5000 3050 60  0001 C CNN "ta_ref"
-F 5 "RC0805FR-0713K3L" V 5000 3050 60  0001 C CNN "mpn"
-	1    5000 3050
-	1    0    0    -1  
-$EndComp
-$Comp
-L C C4
-U 1 1 59E18A6B
-P 4700 2550
-F 0 "C4" H 4725 2650 50  0000 L CNN
-F 1 "75p" H 4725 2450 50  0000 L CNN
-F 2 "Capacitors_SMD:C_0805" H 4738 2400 50  0001 C CNN
-F 3 "" H 4700 2550 50  0000 C CNN
-F 4 "C6" H 4700 2550 60  0001 C CNN "ta_ref"
-F 5 "10V" H 4700 2550 60  0001 C CNN "voltage"
-F 6 "08051A750JAT2A" H 4700 2550 60  0001 C CNN "mpn"
-	1    4700 2550
-	1    0    0    -1  
-$EndComp
-$Comp
-L ESP-12F U3
-U 1 1 59E91F52
-P 4800 5000
-F 0 "U3" H 4800 4900 50  0000 C CNN
-F 1 "ESP-12F" H 4800 5100 50  0000 C CNN
-F 2 "ESP8266:ESP-12E" H 4800 5000 50  0001 C CNN
-F 3 "https://www.elecrow.com/download/ESP-12F.pdf" H 4800 5000 50  0001 C CNN
-	1    4800 5000
-	1    0    0    -1  
-$EndComp
-$Comp
-L +5V #PWR032
-U 1 1 59E92DFB
-P 700 4300
-F 0 "#PWR032" H 700 4150 50  0001 C CNN
-F 1 "+5V" H 700 4440 50  0000 C CNN
-F 2 "" H 700 4300 50  0001 C CNN
-F 3 "" H 700 4300 50  0001 C CNN
-	1    700  4300
-	1    0    0    -1  
-$EndComp
-$Comp
-L +3.3V #PWR033
-U 1 1 59E92E57
-P 2900 4300
-F 0 "#PWR033" H 2900 4150 50  0001 C CNN
-F 1 "+3.3V" H 2900 4440 50  0000 C CNN
-F 2 "" H 2900 4300 50  0001 C CNN
-F 3 "" H 2900 4300 50  0001 C CNN
-	1    2900 4300
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR034
-U 1 1 59E92ED7
-P 5800 5500
-F 0 "#PWR034" H 5800 5250 50  0001 C CNN
-F 1 "GND" H 5800 5350 50  0000 C CNN
-F 2 "" H 5800 5500 50  0001 C CNN
-F 3 "" H 5800 5500 50  0001 C CNN
-	1    5800 5500
-	1    0    0    -1  
-$EndComp
-$Comp
-L +3.3V #PWR035
-U 1 1 59E93177
-P 3750 4350
-F 0 "#PWR035" H 3750 4200 50  0001 C CNN
-F 1 "+3.3V" H 3750 4490 50  0000 C CNN
-F 2 "" H 3750 4350 50  0001 C CNN
-F 3 "" H 3750 4350 50  0001 C CNN
-	1    3750 4350
-	1    0    0    -1  
-$EndComp
-$Comp
-L AP2114H-3.3TRG1 U2
-U 1 1 59E933F0
-P 1700 4500
-F 0 "U2" H 1700 4600 60  0000 C CNN
-F 1 "AP2114H-3.3TRG1" H 1700 4400 60  0000 C CNN
-F 2 "TO_SOT_Packages_SMD:SOT-223" H 1700 4500 60  0001 C CNN
-F 3 "" H 1700 4500 60  0001 C CNN
-F 4 "1A" H 1900 4800 60  0000 L BNN "Iout"
-F 5 "AP2114H-3.3TRG1" H 1700 4500 60  0001 C CNN "mpn"
-	1    1700 4500
-	1    0    0    -1  
-$EndComp
-$Comp
-L GND #PWR036
-U 1 1 59E93E51
-P 1700 5300
-F 0 "#PWR036" H 1700 5050 50  0001 C CNN
-F 1 "GND" H 1700 5150 50  0000 C CNN
-F 2 "" H 1700 5300 50  0001 C CNN
-F 3 "" H 1700 5300 50  0001 C CNN
-	1    1700 5300
-	1    0    0    -1  
-$EndComp
-$Comp
-L C C7
-U 1 1 59E94016
-P 800 4650
-F 0 "C7" H 825 4750 50  0000 L CNN
-F 1 "4.7µ" H 825 4550 50  0000 L CNN
-F 2 "Capacitors_SMD:C_0805" H 838 4500 50  0001 C CNN
-F 3 "" H 800 4650 50  0001 C CNN
-F 4 "LMK212BJ475KD-T" H 800 4650 60  0001 C CNN "mpn"
-	1    800  4650
-	1    0    0    -1  
-$EndComp
-$Comp
-L C C8
-U 1 1 59E94540
-P 2800 4650
-F 0 "C8" H 2825 4750 50  0000 L CNN
-F 1 "4.7µ" H 2825 4550 50  0000 L CNN
-F 2 "Capacitors_SMD:C_0805" H 2838 4500 50  0001 C CNN
-F 3 "" H 2800 4650 50  0001 C CNN
-F 4 "LMK212BJ475KD-T" H 2800 4650 60  0001 C CNN "mpn"
-	1    2800 4650
-	1    0    0    -1  
-$EndComp
-$Comp
-L Conn_01x06 P14
-U 1 1 59E9745D
-P 3400 7100
-F 0 "P14" H 3400 7400 50  0000 C CNN
-F 1 "PROGRAMMER" H 3400 6700 50  0000 C CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x06_Pitch2.54mm" H 3400 7100 50  0001 C CNN
-F 3 "" H 3400 7100 50  0001 C CNN
-F 4 "DNO" V 3600 6850 60  0000 C CNN "assembly"
-	1    3400 7100
-	1    0    0    -1  
-$EndComp
-Text Label 6300 4700 2    60   ~ 0
-TX
-Text Label 6300 4800 2    60   ~ 0
-RX
-Text Label 3250 4900 0    60   ~ 0
-CH_PD
-Text Label 3250 4700 0    60   ~ 0
-~RESET
-Text Label 2600 6900 0    60   ~ 0
-~RESET
-$Comp
-L GND #PWR037
-U 1 1 59E97FCA
-P 3100 7500
-F 0 "#PWR037" H 3100 7250 50  0001 C CNN
-F 1 "GND" H 3100 7350 50  0000 C CNN
-F 2 "" H 3100 7500 50  0001 C CNN
-F 3 "" H 3100 7500 50  0001 C CNN
-	1    3100 7500
-	1    0    0    -1  
-$EndComp
-$Comp
-L +3.3V #PWR038
-U 1 1 59E983FB
-P 3100 6900
-F 0 "#PWR038" H 3100 6750 50  0001 C CNN
-F 1 "+3.3V" H 3100 7040 50  0000 C CNN
-F 2 "" H 3100 6900 50  0001 C CNN
-F 3 "" H 3100 6900 50  0001 C CNN
-	1    3100 6900
-	1    0    0    -1  
-$EndComp
-Text Label 2600 7000 0    60   ~ 0
-CH_PD
-Text Label 2600 7100 0    60   ~ 0
-TX
-Text Label 2600 7200 0    60   ~ 0
-RX
-Text Notes 2450 6650 0    60   ~ 12
-PROGRAMMER
-Text Notes 700  5800 0    60   ~ 0
-AP2124 can deliver up to 1A sustained.\nThe ESP-12F module uses up to 170 mA when transmitting.
-Text Notes 500  650  0    100  ~ 20
-Bitraf hydroponics controller
-Text Notes 500  1300 0    60   ~ 0
-The Bitraf hydroponics controller is an integrated system for controlling a hydroponic-based plant environment. It has wifi\nconnectivity, but can be programmed to work as a stand-alone system.\n\nA basic setup will include one water pump, one air pump and lighting. The MOSFETs control these parts. An I2C-based LCD\ndisplay can be connected for status. If a rotary encoder is connected the settings can be customized. A buzzer can be\nconnected for user feedback.
-Text Notes 6700 4000 0    60   ~ 0
-This can be used as an extra\nI2C interface.
-Text Notes 500  1550 0    60   ~ 12
-12 V to 5 V switched mode DC/DC regulator
-$Comp
-L D D2
-U 1 1 59E9F2A3
-P 8800 1050
-F 0 "D2" H 8800 1150 50  0000 C CNN
-F 1 "S1MTR" H 8800 950 50  0000 C CNN
-F 2 "Diodes_SMD:D_SMA_Handsoldering" H 8800 1050 50  0001 C CNN
-F 3 "http://www.smc-diodes.com/propdf/S1A-S1M%20N0560%20REV.B.pdf" H 8800 1050 50  0001 C CNN
-F 4 "S1MTR" H 8800 1050 60  0001 C CNN "mpn"
-F 5 "1655-1506-2-ND" H 8800 1050 60  0001 C CNN "digikey"
-	1    8800 1050
-	0    1    1    0   
-$EndComp
-$Comp
-L D D3
-U 1 1 59E9F338
-P 10300 1050
-F 0 "D3" H 10300 1150 50  0000 C CNN
-F 1 "S1MTR" H 10300 950 50  0000 C CNN
-F 2 "Diodes_SMD:D_SMA_Handsoldering" H 10300 1050 50  0001 C CNN
-F 3 "http://www.smc-diodes.com/propdf/S1A-S1M%20N0560%20REV.B.pdf" H 10300 1050 50  0001 C CNN
-F 4 "S1MTR" H 10300 1050 60  0001 C CNN "mpn"
-F 5 "1655-1506-2-ND" H 10300 1050 60  0001 C CNN "digikey"
-	1    10300 1050
-	0    1    1    0   
-$EndComp
-Text Notes 1800 2200 0    40   ~ 0
-Capacitors are\nrated to 35V
-Text Notes 4500 2200 0    40   ~ 0
-Capacitors are\nrated to 10V
-Text Notes 3750 7300 1    40   ~ 0
-Normall not installed
 Wire Wire Line
 	7600 1100 7500 1100
 Wire Wire Line
@@ -1263,9 +981,9 @@ Wire Wire Line
 Wire Wire Line
 	10500 3400 10700 3400
 Wire Wire Line
-	3900 4800 3250 4800
+	3900 4800 3300 4800
 Wire Wire Line
-	3250 5300 3900 5300
+	3300 5300 3900 5300
 Wire Wire Line
 	7400 3100 7400 3200
 Wire Wire Line
@@ -1279,11 +997,11 @@ Wire Wire Line
 Wire Wire Line
 	4850 6350 4850 5900
 Wire Wire Line
-	3900 5200 3250 5200
+	3900 5200 3300 5200
 Wire Wire Line
-	3250 5100 3900 5100
+	3300 5100 3900 5100
 Wire Wire Line
-	3900 5000 3250 5000
+	3900 5000 3300 5000
 Wire Wire Line
 	6300 4900 5700 4900
 Wire Wire Line
@@ -1396,17 +1114,66 @@ Wire Notes Line
 Wire Notes Line
 	6600 4900 8200 4900
 Wire Notes Line
-	1100 6500 6600 6500
+	2400 6500 6600 6500
 Wire Notes Line
 	5500 6500 5500 7750
+Text Notes 6700 2700 0    60   ~ 0
+Flyback diodes are "fast rectifier diodes" for inductive loads. DC Reverse Vr(max) is 1000 V,\nIo is 1 A. The MOSFETs have Vdss = 20 V, Rds(on) = 26 mΩ @ 3.3 V, Id = 6.4 A.\n
+Text Notes 6650 600  0    60   ~ 12
+Power switches
 Wire Wire Line
 	6000 2300 6000 2200
 Wire Notes Line
 	6600 4000 500  4000
+Text Notes 600  3900 0    60   ~ 0
+Design is based on "8.2 Typical Application" from the data sheet.\nInput power is 12 V nominal, but the design supports 8-28 V inputs.\nOutput is 5V, 2A.\nEN has internal pull up.
+NoConn ~ 2400 2500
+Text Label 4650 6350 1    60   ~ 0
+SPI_MOSI
+Text Label 4550 6350 1    60   ~ 0
+SPI_CS
+Text Label 4950 6350 1    60   ~ 0
+SPI_MISO
+Text Label 5050 6350 1    60   ~ 0
+SPI_SCL
+$Comp
+L Conn_01x06 P15
+U 1 1 59E13B2D
+P 5100 7100
+F 0 "P15" H 5100 7400 50  0000 C CNN
+F 1 "SPI" H 5100 6700 50  0000 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x06_Pitch2.54mm" H 5100 7100 50  0001 C CNN
+F 3 "" H 5100 7100 50  0001 C CNN
+F 4 "826926-6" H 5100 7100 60  0001 C CNN "mpn"
+	1    5100 7100
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR030
+U 1 1 59E13DC2
+P 4800 7500
+F 0 "#PWR030" H 4800 7250 50  0001 C CNN
+F 1 "GND" H 4800 7350 50  0000 C CNN
+F 2 "" H 4800 7500 50  0000 C CNN
+F 3 "" H 4800 7500 50  0000 C CNN
+	1    4800 7500
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	4900 7400 4800 7400
 Wire Wire Line
 	4800 7400 4800 7500
+$Comp
+L +5V #PWR031
+U 1 1 59E13E54
+P 4800 6800
+F 0 "#PWR031" H 4800 6650 50  0001 C CNN
+F 1 "+5V" H 4800 6940 50  0000 C CNN
+F 2 "" H 4800 6800 50  0000 C CNN
+F 3 "" H 4800 6800 50  0000 C CNN
+	1    4800 6800
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	4900 6900 4800 6900
 Wire Wire Line
@@ -1419,8 +1186,45 @@ Wire Wire Line
 	4000 7300 4900 7300
 Wire Wire Line
 	4900 7100 4000 7100
+Text Label 4000 7200 0    60   ~ 0
+SPI_MOSI
+Text Label 4000 7000 0    60   ~ 0
+SPI_CS
+Text Label 4000 7300 0    60   ~ 0
+SPI_MISO
+Text Label 4000 7100 0    60   ~ 0
+SPI_SCL
 Wire Notes Line
 	3800 6500 3800 7750
+Text Notes 3850 6650 0    60   ~ 12
+SPI
+$Comp
+L R R5
+U 1 1 59E184EC
+P 5000 3050
+F 0 "R5" V 5080 3050 50  0000 C CNN
+F 1 "13.3k" V 5000 3050 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805" V 4930 3050 50  0001 C CNN
+F 3 "" H 5000 3050 50  0000 C CNN
+F 4 "R3" V 5000 3050 60  0001 C CNN "ta_ref"
+F 5 "RC0805FR-0713K3L" V 5000 3050 60  0001 C CNN "mpn"
+	1    5000 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C4
+U 1 1 59E18A6B
+P 4700 2550
+F 0 "C4" H 4725 2650 50  0000 L CNN
+F 1 "75p" H 4725 2450 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0805" H 4738 2400 50  0001 C CNN
+F 3 "" H 4700 2550 50  0000 C CNN
+F 4 "C6" H 4700 2550 60  0001 C CNN "ta_ref"
+F 5 "10V" H 4700 2550 60  0001 C CNN "voltage"
+F 6 "08051A750JAT2A" H 4700 2550 60  0001 C CNN "mpn"
+	1    4700 2550
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	5000 2700 5000 2900
 Wire Wire Line
@@ -1434,14 +1238,82 @@ Wire Wire Line
 Wire Wire Line
 	5000 2300 5000 2400
 Connection ~ 4700 2300
+$Comp
+L ESP-12F U3
+U 1 1 59E91F52
+P 4800 5000
+F 0 "U3" H 4800 4900 50  0000 C CNN
+F 1 "ESP-12F" H 4800 5100 50  0000 C CNN
+F 2 "ESP8266:ESP-12E" H 4800 5000 50  0001 C CNN
+F 3 "https://www.elecrow.com/download/ESP-12F.pdf" H 4800 5000 50  0001 C CNN
+	1    4800 5000
+	1    0    0    -1  
+$EndComp
+$Comp
+L +5V #PWR032
+U 1 1 59E92DFB
+P 700 4300
+F 0 "#PWR032" H 700 4150 50  0001 C CNN
+F 1 "+5V" H 700 4440 50  0000 C CNN
+F 2 "" H 700 4300 50  0001 C CNN
+F 3 "" H 700 4300 50  0001 C CNN
+	1    700  4300
+	1    0    0    -1  
+$EndComp
+$Comp
+L +3.3V #PWR033
+U 1 1 59E92E57
+P 2900 4300
+F 0 "#PWR033" H 2900 4150 50  0001 C CNN
+F 1 "+3.3V" H 2900 4440 50  0000 C CNN
+F 2 "" H 2900 4300 50  0001 C CNN
+F 3 "" H 2900 4300 50  0001 C CNN
+	1    2900 4300
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR034
+U 1 1 59E92ED7
+P 5800 5500
+F 0 "#PWR034" H 5800 5250 50  0001 C CNN
+F 1 "GND" H 5800 5350 50  0000 C CNN
+F 2 "" H 5800 5500 50  0001 C CNN
+F 3 "" H 5800 5500 50  0001 C CNN
+	1    5800 5500
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	5700 5400 5800 5400
 Wire Wire Line
 	5800 5400 5800 5500
 Wire Wire Line
-	3750 5400 3900 5400
+	3900 5400 3800 5400
 Wire Wire Line
-	3750 5400 3750 4350
+	3800 5400 3800 4600
+$Comp
+L +3.3V #PWR035
+U 1 1 59E93177
+P 3800 4600
+F 0 "#PWR035" H 3800 4450 50  0001 C CNN
+F 1 "+3.3V" H 3800 4740 50  0000 C CNN
+F 2 "" H 3800 4600 50  0001 C CNN
+F 3 "" H 3800 4600 50  0001 C CNN
+	1    3800 4600
+	1    0    0    -1  
+$EndComp
+$Comp
+L AP2114H-3.3TRG1 U2
+U 1 1 59E933F0
+P 1700 4500
+F 0 "U2" H 1700 4600 60  0000 C CNN
+F 1 "AP2114H-3.3TRG1" H 1700 4400 60  0000 C CNN
+F 2 "TO_SOT_Packages_SMD:SOT-223" H 1700 4500 60  0001 C CNN
+F 3 "" H 1700 4500 60  0001 C CNN
+F 4 "1A" H 1900 4800 60  0000 L BNN "Iout"
+F 5 "AP2114H-3.3TRG1" H 1700 4500 60  0001 C CNN "mpn"
+	1    1700 4500
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	700  4300 700  4400
 Wire Wire Line
@@ -1455,8 +1327,31 @@ Wire Wire Line
 Wire Wire Line
 	2700 4500 2700 4400
 Connection ~ 2700 4400
+$Comp
+L GND #PWR036
+U 1 1 59E93E51
+P 1700 5300
+F 0 "#PWR036" H 1700 5050 50  0001 C CNN
+F 1 "GND" H 1700 5150 50  0000 C CNN
+F 2 "" H 1700 5300 50  0001 C CNN
+F 3 "" H 1700 5300 50  0001 C CNN
+	1    1700 5300
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	1700 5100 1700 5300
+$Comp
+L C C7
+U 1 1 59E94016
+P 800 4650
+F 0 "C7" H 825 4750 50  0000 L CNN
+F 1 "4.7µ" H 825 4550 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0805" H 838 4500 50  0001 C CNN
+F 3 "" H 800 4650 50  0001 C CNN
+F 4 "LMK212BJ475KD-T" H 800 4650 60  0001 C CNN "mpn"
+	1    800  4650
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	800  4400 800  4500
 Connection ~ 800  4400
@@ -1465,6 +1360,18 @@ Wire Wire Line
 Wire Wire Line
 	800  5200 2800 5200
 Connection ~ 1700 5200
+$Comp
+L C C8
+U 1 1 59E94540
+P 2800 4650
+F 0 "C8" H 2825 4750 50  0000 L CNN
+F 1 "4.7µ" H 2825 4550 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0805" H 2838 4500 50  0001 C CNN
+F 3 "" H 2800 4650 50  0001 C CNN
+F 4 "LMK212BJ475KD-T" H 2800 4650 60  0001 C CNN "mpn"
+	1    2800 4650
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	2800 4400 2800 4500
 Connection ~ 2800 4400
@@ -1472,18 +1379,62 @@ Wire Wire Line
 	2800 5200 2800 4800
 Wire Notes Line
 	2400 6500 2400 7750
+$Comp
+L Conn_01x06 P14
+U 1 1 59E9745D
+P 3400 7100
+F 0 "P14" H 3400 7400 50  0000 C CNN
+F 1 "PROGRAMMER" H 3400 6700 50  0000 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x06_Pitch2.54mm" H 3400 7100 50  0001 C CNN
+F 3 "" H 3400 7100 50  0001 C CNN
+F 4 "DNO" V 3600 6850 60  0000 C CNN "assembly"
+	1    3400 7100
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	5700 4800 6300 4800
 Wire Wire Line
 	6300 4700 5700 4700
+Text Label 6300 4700 2    60   ~ 0
+TX
+Text Label 6300 4800 2    60   ~ 0
+RX
 Wire Wire Line
-	3250 4900 3900 4900
+	3900 4900 3300 4900
+Text Label 3300 4900 0    60   ~ 0
+CH_PD
 Wire Wire Line
-	3250 4700 3900 4700
+	3300 4700 3900 4700
+Text Label 3300 4700 0    60   ~ 0
+~RESET
+Text Label 2600 6900 0    60   ~ 0
+~RESET
+$Comp
+L GND #PWR037
+U 1 1 59E97FCA
+P 3100 7500
+F 0 "#PWR037" H 3100 7250 50  0001 C CNN
+F 1 "GND" H 3100 7350 50  0000 C CNN
+F 2 "" H 3100 7500 50  0001 C CNN
+F 3 "" H 3100 7500 50  0001 C CNN
+	1    3100 7500
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	3100 7500 3100 7400
 Wire Wire Line
 	3100 7400 3200 7400
+$Comp
+L +3.3V #PWR038
+U 1 1 59E983FB
+P 3100 6900
+F 0 "#PWR038" H 3100 6750 50  0001 C CNN
+F 1 "+3.3V" H 3100 7040 50  0000 C CNN
+F 2 "" H 3100 6900 50  0001 C CNN
+F 3 "" H 3100 6900 50  0001 C CNN
+	1    3100 6900
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
 	3100 6900 3100 7300
 Wire Wire Line
@@ -1494,63 +1445,59 @@ Wire Wire Line
 	2600 7000 3200 7000
 Wire Wire Line
 	2600 7100 3200 7100
+Text Label 2600 7000 0    60   ~ 0
+CH_PD
+Text Label 2600 7100 0    60   ~ 0
+TX
+Text Label 2600 7200 0    60   ~ 0
+RX
 Wire Wire Line
 	2600 7200 3200 7200
+Text Notes 2450 6650 0    60   ~ 12
+PROGRAMMER
+Text Notes 700  5800 0    60   ~ 0
+AP2124 can deliver up to 1A sustained.\nThe ESP-12F module uses up to 170 mA when transmitting.
 Wire Notes Line
 	6600 1400 500  1400
+Text Notes 500  650  0    100  ~ 20
+Bitraf hydroponics controller
+Text Notes 500  1300 0    60   ~ 0
+The Bitraf hydroponics controller is an integrated system for controlling a hydroponic-based plant environment. It has wifi\nconnectivity, but can be programmed to work as a stand-alone system.\n\nA basic setup will include one water pump, one air pump and lighting. The MOSFETs control these parts. An I2C-based LCD\ndisplay can be connected for status. If a rotary encoder is connected the settings can be customized. A buzzer can be\nconnected for user feedback.
+Text Notes 6700 4000 0    60   ~ 0
+This can be used as an extra\nI2C interface.
+Text Notes 500  1550 0    60   ~ 12
+12 V to 5 V switched mode DC/DC regulator
+$Comp
+L D D2
+U 1 1 59E9F2A3
+P 8800 1050
+F 0 "D2" H 8800 1150 50  0000 C CNN
+F 1 "S1MTR" H 8800 950 50  0000 C CNN
+F 2 "Diodes_SMD:D_SMA_Handsoldering" H 8800 1050 50  0001 C CNN
+F 3 "http://www.smc-diodes.com/propdf/S1A-S1M%20N0560%20REV.B.pdf" H 8800 1050 50  0001 C CNN
+F 4 "S1MTR" H 8800 1050 60  0001 C CNN "mpn"
+F 5 "1655-1506-2-ND" H 8800 1050 60  0001 C CNN "digikey"
+	1    8800 1050
+	0    1    1    0   
+$EndComp
+$Comp
+L D D3
+U 1 1 59E9F338
+P 10300 1050
+F 0 "D3" H 10300 1150 50  0000 C CNN
+F 1 "S1MTR" H 10300 950 50  0000 C CNN
+F 2 "Diodes_SMD:D_SMA_Handsoldering" H 10300 1050 50  0001 C CNN
+F 3 "http://www.smc-diodes.com/propdf/S1A-S1M%20N0560%20REV.B.pdf" H 10300 1050 50  0001 C CNN
+F 4 "S1MTR" H 10300 1050 60  0001 C CNN "mpn"
+F 5 "1655-1506-2-ND" H 10300 1050 60  0001 C CNN "digikey"
+	1    10300 1050
+	0    1    1    0   
+$EndComp
 Connection ~ 5000 2300
-Wire Wire Line
-	3850 4900 3850 5400
-Connection ~ 3850 5400
-Connection ~ 3850 4900
-Wire Wire Line
-	5750 5300 5750 4650
-Connection ~ 5750 5300
-$Comp
-L R R7
-U 1 1 5A04E560
-P 5750 4500
-F 0 "R7" V 5830 4500 50  0000 C CNN
-F 1 "8.2k" V 5750 4500 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805" V 5680 4500 50  0001 C CNN
-F 3 "" H 5750 4500 50  0001 C CNN
-	1    5750 4500
-	1    0    0    -1  
-$EndComp
-$Comp
-L +3.3V #PWR039
-U 1 1 5A04E5CD
-P 5750 4350
-F 0 "#PWR039" H 5750 4200 50  0001 C CNN
-F 1 "+3.3V" H 5750 4490 50  0000 C CNN
-F 2 "" H 5750 4350 50  0001 C CNN
-F 3 "" H 5750 4350 50  0001 C CNN
-	1    5750 4350
-	1    0    0    -1  
-$EndComp
-Text Label 5800 5100 0    60   ~ 0
-PRG
-$Comp
-L Conn_01x02 J1
-U 1 1 5A054413
-P 2050 7100
-F 0 "J1" H 2050 7200 50  0000 C CNN
-F 1 "PRG_JMP" H 2050 6900 50  0000 C CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x02_Pitch2.54mm" H 2050 7100 50  0001 C CNN
-F 3 "" H 2050 7100 50  0001 C CNN
-	1    2050 7100
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	1850 7100 1400 7100
-Wire Wire Line
-	1850 7200 1400 7200
-Text Label 1400 7100 0    60   ~ 0
-RESET
-Text Label 1400 7200 0    60   ~ 0
-PRG
-Wire Notes Line
-	1100 6500 1100 7750
-Text Notes 1200 6650 0    60   ~ 12
-Jumper for programming
+Text Notes 1800 2200 0    40   ~ 0
+Capacitors are\nrated to 35V
+Text Notes 4500 2200 0    40   ~ 0
+Capacitors are\nrated to 10V
+Text Notes 3750 7300 1    40   ~ 0
+Normall not installed
 $EndSCHEMATC
